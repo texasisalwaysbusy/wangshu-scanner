@@ -1,0 +1,28 @@
+<resources>
+    <color name="ink">#22252A</color>
+    <color name="muted">#5D626B</color>
+    <color name="accent">#3B5F8A</color>
+    <color name="paper">#F6F6F7</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="preview">#E8EAED</color>
+    <color name="disabled_ink">#5F6570</color>
+    <color name="disabled_surface">#DFE2E7</color>
+    <color name="control_ripple">#243B5F8A</color>
+    <color name="crop_canvas">#24272D</color>
+    <color name="crop_border">#92B6E2</color>
+    <color name="crop_handle">#3B5F8A</color>
+    <!-- Viewfinder keeps a neutral dark surround in either system appearance. -->
+    <color name="capture_background">#17191D</color>
+    <color name="capture_surface">#24272D</color>
+    <color name="capture_stroke">#717986</color>
+    <color name="capture_text">#F5F6F8</color>
+    <color name="capture_muted">#D3D8DF</color>
+    <color name="capture_primary">#C4D5EC</color>
+    <color name="capture_on_primary">#203650</color>
+    <color name="capture_secondary">#30353E</color>
+    <color name="capture_disabled_surface">#343840</color>
+    <color name="capture_disabled_ink">#ADB4BF</color>
+    <color name="capture_ripple">#337993B5</color>
+    <color name="capture_scrim">#BB0B0D10</color>
+</resources>

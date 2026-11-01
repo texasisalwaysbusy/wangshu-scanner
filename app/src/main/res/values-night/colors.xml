@@ -1,0 +1,12 @@
+<resources>
+    <color name="ink">#F0F1F3</color>
+    <color name="muted">#B8BDC6</color>
+    <color name="accent">#9EBCE2</color>
+    <color name="paper">#17181B</color>
+    <color name="surface">#23252A</color>
+    <color name="on_accent">#162A42</color>
+    <color name="preview">#101114</color>
+    <color name="disabled_ink">#B9C0CA</color>
+    <color name="disabled_surface">#343840</color>
+    <color name="control_ripple">#339EBCE2</color>
+</resources>

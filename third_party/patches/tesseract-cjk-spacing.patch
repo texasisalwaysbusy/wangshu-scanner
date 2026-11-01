@@ -1,0 +1,109 @@
+--- a/tesseract4android/src/main/cpp/tesseract/src/src/api/pdfrenderer.cpp
++++ b/tesseract4android/src/main/cpp/tesseract/src/src/api/pdfrenderer.cpp
+@@ -184,0 +185,16 @@
++
++// Wangshu: full-em CJK advances avoid false word spaces in extractors that
++// estimate gaps from font metrics. Compensating Tz preserves every raster and
++// existing word position; Latin keeps its original half-em metrics.
++static bool IsCjkText(char32 code) {
++  return (code >= 0x3400 && code <= 0x9fff) ||
++         (code >= 0xf900 && code <= 0xfaff) ||
++         (code >= 0x20000 && code <= 0x3134f) ||
++         (code >= 0x3001 && code <= 0x303f) ||
++         (code >= 0xff01 && code <= 0xff60);
++}
++static int PdfWidthUnits(char32 code) {
++  // A supplementary scalar encodes as two half-em UTF-16 CIDs.
++  return IsCjkText(code) || code > 0xffff ? 2 : 1;
++}
++
+@@ -462,2 +478,2 @@
+-    bool last_word_in_line = res_it->IsAtFinalElement(RIL_TEXTLINE, RIL_WORD);
+-    bool last_word_in_block = res_it->IsAtFinalElement(RIL_BLOCK, RIL_WORD);
++    bool last_word_in_line = false;
++    bool last_word_in_block = false;
+@@ -465 +481,4 @@
+-    int pdf_word_len = 0;
++    int pdf_word_width = 0;
++    bool last_symbol_is_cjk = false;
++    bool all_symbols_are_cjk = true;
++    bool join_next_cjk_word = false;
+@@ -467,8 +486,48 @@
+-      const std::unique_ptr<const char[]> grapheme(res_it->GetUTF8Text(RIL_SYMBOL));
+-      if (grapheme && grapheme[0] != '\0') {
+-        std::vector<char32> unicodes = UNICHAR::UTF8ToUTF32(grapheme.get());
+-        char utf16[kMaxBytesPerCodepoint];
+-        for (char32 code : unicodes) {
+-          if (CodepointToUtf16be(code, utf16)) {
+-            pdf_word += utf16;
+-            pdf_word_len++;
++      last_word_in_line = res_it->IsAtFinalElement(RIL_TEXTLINE, RIL_WORD);
++      last_word_in_block = res_it->IsAtFinalElement(RIL_BLOCK, RIL_WORD);
++      do {
++        const std::unique_ptr<const char[]> grapheme(res_it->GetUTF8Text(RIL_SYMBOL));
++        if (grapheme && grapheme[0] != '\0') {
++          std::vector<char32> unicodes = UNICHAR::UTF8ToUTF32(grapheme.get());
++          char utf16[kMaxBytesPerCodepoint];
++          for (char32 code : unicodes) {
++            last_symbol_is_cjk = IsCjkText(code);
++            all_symbols_are_cjk = all_symbols_are_cjk && last_symbol_is_cjk;
++            if (CodepointToUtf16be(code, utf16)) {
++              pdf_word += utf16;
++              pdf_word_width += PdfWidthUnits(code);
++            }
++          }
++        }
++        res_it->Next(RIL_SYMBOL);
++      } while (!res_it->Empty(RIL_BLOCK) && !res_it->IsAtBeginningOf(RIL_WORD));
++
++      // Wangshu: tight per-word OCR boxes leave artificial gaps between Han
++      // glyphs. PDFium may infer spaces even with correct CID widths. Fit a
++      // nearby same-line CJK run as one text object, preserving its endpoints
++      // and every raster byte. Latin/mixed words, large gaps, RTL and new lines
++      // retain the original per-word positioning.
++      join_next_cjk_word = false;
++      if (all_symbols_are_cjk && pdf_word_width > 0 && !last_word_in_line &&
++          writing_direction == WRITING_DIRECTION_LEFT_TO_RIGHT &&
++          !res_it->Empty(RIL_BLOCK) && res_it->IsAtBeginningOf(RIL_WORD)) {
++        const std::unique_ptr<const char[]> next(res_it->GetUTF8Text(RIL_WORD));
++        bool next_is_all_cjk = next && next[0];
++        if (next_is_all_cjk) {
++          const auto codes = UNICHAR::UTF8ToUTF32(next.get());
++          next_is_all_cjk = !codes.empty();
++          for (char32 code : codes) next_is_all_cjk = next_is_all_cjk && IsCjkText(code);
++        }
++        int nx1, ny1, nx2, ny2;
++        if (next_is_all_cjk && res_it->Baseline(RIL_WORD, &nx1, &ny1, &nx2, &ny2)) {
++          double nx, ny, next_length;
++          GetWordBaseline(writing_direction, ppi, height, nx1, ny1, nx2, ny2,
++                          line_x1, line_y1, line_x2, line_y2, &nx, &ny, &next_length);
++          double offset = (nx - x) * a + (ny - y) * b;
++          double cross = (nx - x) * c + (ny - y) * d;
++          double gap = offset - word_length;
++          if (next_length > 0 && offset >= 0 && std::fabs(cross) <= fontsize * 0.25 &&
++              gap >= -fontsize * 0.5 && gap <= fontsize * 0.75) {
++            double end = offset + next_length;
++            if (end > word_length) word_length = end;
++            join_next_cjk_word = true;
+@@ -478,2 +537 @@
+-      res_it->Next(RIL_SYMBOL);
+-    } while (!res_it->Empty(RIL_BLOCK) && !res_it->IsAtBeginningOf(RIL_WORD));
++    } while (join_next_cjk_word);
+@@ -481,4 +539,11 @@
+-      pdf_word += "0020";
+-    }
+-    if (word_length > 0 && pdf_word_len > 0) {
+-      double h_stretch = kCharWidth * prec(100.0 * word_length / (fontsize * pdf_word_len));
++      // Wangshu modification: Chinese OCR words are not separated by ASCII spaces.
++      const std::unique_ptr<const char[]> next(res_it->GetUTF8Text(RIL_SYMBOL));
++      bool next_is_cjk = false;
++      if (next && next[0]) {
++        const auto chars = UNICHAR::UTF8ToUTF32(next.get());
++        next_is_cjk = !chars.empty() && IsCjkText(chars.front());
++      }
++      if (!(last_symbol_is_cjk && next_is_cjk)) pdf_word += "0020";
++    }
++    if (word_length > 0 && pdf_word_width > 0) {
++      double h_stretch = kCharWidth * prec(100.0 * word_length / (fontsize * pdf_word_width));
+@@ -548,0 +614 @@
++            "  /W [12289 12351 1000 13312 40959 1000 63744 64255 1000 65281 65376 1000]\n"

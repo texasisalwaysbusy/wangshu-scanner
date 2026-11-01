@@ -1,0 +1,38 @@
+{
+  "tesseract4android": {
+    "version": "4.9.0",
+    "url": "https://codeload.github.com/adaptech-cz/Tesseract4Android/tar.gz/refs/tags/4.9.0",
+    "sha256": "4569f9093d641d13188ba2dd36a74396661eaa3f9e44637ff1cac9a36076a20e",
+    "native": "Four ABIs built locally with NDK27; flexible16KB ELF alignment on arm64-v8a/x86_64, normal4KB32-bit libraries; no physical16KB-page runtime claim",
+    "license": "Apache-2.0 with upstream Leptonica/BSD, libpng and IJG notices"
+  },
+  "assets": {
+    "pdf.ttf": {
+      "sha256": "c7845420925a23d88ed830a63957b8af85a66a8daf8d9fc90e843673b2ef1a59",
+      "origin": "Tesseract4Android 4.9.0 embedded Tesseract tessdata/pdf.ttf"
+    },
+    "chi_sim.traineddata": {
+      "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+      "origin": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/chi_sim.traineddata"
+    },
+    "eng.traineddata": {
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "origin": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/eng.traineddata"
+    }
+  },
+  "registry_failures": [
+    "JitPack CONNECT 403; no retry",
+    "GitHub release metadata API CONNECT 403; no retry"
+  ],
+  "note": "No tess-two 9.1.0 binary is used in the application; it was inspected only. Build current official tagged source instead.",
+  "patches": [
+    {
+      "patch": "third_party/patches/tesseract-cjk-spacing.patch",
+      "sha256": "159553382fe90ef70c69d4729cf0da71e2eddf93d7423f0b69714e28c4f19169",
+      "file": "tesseract4android/src/main/cpp/tesseract/src/src/api/pdfrenderer.cpp",
+      "original_sha256": "5a41d7cc51475e061442547b33042425ff25dcfb5fdb54aa4a511ae3bab2bb5c",
+      "patched_sha256": "d0ea7aec58f97a2b45b4d162a5076daee9cd5fc86b4ffc11dc6d00c11f1506cb",
+      "purpose": "Contiguous CJK with full-em CID metrics and nearby same-line CJK word coalescence; preserve raster and run endpoints, retain Latin/RTL/newline/large-gap positioning"
+    }
+  ]
+}

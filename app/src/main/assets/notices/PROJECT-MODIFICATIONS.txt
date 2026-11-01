@@ -1,0 +1,1 @@
+Paperkeep / Wangshu Scan modifies Tesseract 5.5.1 pdfrenderer.cpp (2026-10-23) to avoid inserting ASCII word separators between adjacent CJK OCR symbols. Upstream is Apache-2.0; source patch and hashes accompany project source under third_party/patches and docs/OCR-DEPENDENCIES.json. No upstream authors endorse this application.

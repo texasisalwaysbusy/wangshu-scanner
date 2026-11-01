@@ -1,0 +1,29 @@
+plugins { id 'com.android.library' }
+
+def vendor = rootProject.file('../../.tools/sources/Tesseract4Android-4.9.0/tesseract4android')
+if (!vendor.exists()) throw new GradleException('Run tools/prepare_ocr_source.py under approved installation scope first')
+android {
+    namespace 'cz.adaptech.tesseract4android'
+    compileSdk 36
+    ndkVersion '27.2.12479018'
+    defaultConfig {
+        minSdk 26
+        ndk { abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a' }
+        buildConfigField 'String', 'FLAVOR', '"standard"'
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_JOB_POOLS=compile=2;link=1', '-DCMAKE_JOB_POOL_COMPILE=compile', '-DCMAKE_JOB_POOL_LINK=link'
+            }
+        }
+    }
+    sourceSets {
+        main {
+            java.srcDirs = [new File(vendor,'src/main/java')]
+            manifest.srcFile new File(vendor,'src/main/AndroidManifest.xml')
+        }
+    }
+    externalNativeBuild { cmake { path new File(vendor,'src/main/cpp/CMakeLists.txt'); version '3.22.1' } }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.annotation:annotation:1.3.0' }
