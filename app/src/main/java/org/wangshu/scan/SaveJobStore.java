@@ -3,6 +3,8 @@ package org.wangshu.scan;
 import android.content.Context;
 import android.util.AtomicFile;
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.*;
 import java.util.*;
 
@@ -62,7 +64,7 @@ final class SaveJobStore {
             f=ownedPath(f);if(!sources.isFile(f)||sources.length(f)<=0)throw new IOException("导出缓存已不可用，请重新生成；文稿和原图保留");return f;}
     }
     Job begin(File source,String mime,String title)throws IOException{
-        synchronized(LOCK){if(LIVE_WRITERS.containsKey(files.getCanonicalPath()))throw new IOException("另一保存仍在结束，未打开新位置；请稍后重试");File f=ownedPath(source);if(!validMime(mime)||!mime.equals(mimeFor(f.getName()))||title==null||title.length()>300||title.indexOf('\0')>=0)throw new IOException("保存请求格式无效");
+        synchronized(LOCK){if(LIVE_WRITERS.containsKey(files.getCanonicalPath()))throw new IOException("另一保存仍在结束，未打开新位置；请稍后重试");Job prior=read();if(prior!=null&&prior.phase!=DONE&&prior.phase!=CANCELLED)throw new IOException("先前保存请求仍未确认；旧记录和导出源保留，未创建新请求");File f=ownedPath(source);if(!validMime(mime)||!mime.equals(mimeFor(f.getName()))||title==null||title.length()>300||title.indexOf('\0')>=0)throw new IOException("保存请求格式无效");
             long bytes=sources.length(f);if(!sources.isFile(f)||bytes<=0)throw new IOException("导出源不可用，请重新生成；未打开保存位置");String sha;
             try(SourceHandle h=sources.open(f)){sha=hash(h.stream(),bytes);}Job j=new Job(UUID.randomUUID().toString(),f.getPath(),bytes,sha,mime,title,REQUESTED);persist(j);return j;}
     }
@@ -92,8 +94,22 @@ final class SaveJobStore {
     private static String hash(InputStream in,long expected)throws IOException{MessageDigest digest=digest();byte[] b=new byte[65536];long total=0;int n;while((n=in.read(b))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("保存准备已中断，未打开位置");total+=n;if(total>expected)throw new IOException("导出源在准备时发生变化");digest.update(b,0,n);}if(total!=expected)throw new IOException("导出源长度已变化");return hex(digest.digest());}
     private static String hex(byte[] bytes){StringBuilder b=new StringBuilder();for(byte v:bytes)b.append(String.format(Locale.ROOT,"%02x",v&255));return b.toString();}
     private static final class Disk implements Persistence {
-        final AtomicFile file;Disk(File f){file=new AtomicFile(f);}
-        public byte[] read()throws IOException{try(InputStream in=file.openRead()){ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] row=new byte[1024];int n;while((n=in.read(row))!=-1){if(b.size()+n>32768)throw new IOException("保存记录过大");b.write(row,0,n);}return b.toByteArray();}catch(FileNotFoundException e){return null;}}
+        final AtomicFile file;final File base;Disk(File f){base=f;file=new AtomicFile(f);}
+        public byte[] read()throws IOException{
+            // AtomicFile.openRead may itself reconcile or remove sidecars. Do not
+            // call it while any candidate is unresolved, and never infer absence
+            // from a FileNotFoundException or an unknown filesystem status.
+            boolean present=false;File[] candidates={base,new File(base.getPath()+".bak"),new File(base.getPath()+".new")};
+            for(int i=0;i<candidates.length;i++){
+                try{BasicFileAttributes a=Files.readAttributes(candidates[i].toPath(),BasicFileAttributes.class,LinkOption.NOFOLLOW_LINKS);
+                    if(i!=0||!a.isRegularFile()||a.isSymbolicLink())throw new IOException("保存记录存在待核对候选，未创建新请求");present=true;}
+                catch(NoSuchFileException absent){/* Check each candidate before accepting absence. */}
+                catch(SecurityException denied){throw new IOException("无法确认已有保存记录，未创建新请求",denied);}
+            }
+            if(!present)return null;
+            try(InputStream in=file.openRead()){ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] row=new byte[1024];int n;while((n=in.read(row))!=-1){if(b.size()+n>32768)throw new IOException("保存记录过大");b.write(row,0,n);}return b.toByteArray();}
+            catch(FileNotFoundException failure){throw new IOException("已有保存记录无法读取，未创建新请求",failure);}
+        }
         public void write(byte[] bytes)throws IOException{FileOutputStream out=null;try{out=file.startWrite();out.write(bytes);out.getFD().sync();file.finishWrite(out);}catch(IOException|RuntimeException e){if(out!=null)file.failWrite(out);throw e;}}
     }
     private static final class DiskSources implements Sources {

@@ -110,6 +110,8 @@ final class Store {
                 while((n=in.read(buffer))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("图片导入已中断，已保存原图仍保留");size+=n;if(size>100L*1024*1024)throw new IOException("单张图片超过 100 MB");out.write(buffer,0,n);digest.update(buffer,0,n);}
                 out.getFD().sync();
             }
+            // Bounds decoding alone can accept a JPEG cut off before its end marker.
+            CameraInbox.requireCompleteIfJpeg(tmp);
             BitmapFactory.Options opts=new BitmapFactory.Options();opts.inJustDecodeBounds=true;BitmapFactory.decodeFile(tmp.getPath(),opts);
             if(opts.outWidth<2||opts.outHeight<2)throw new IOException("图片格式不支持或文件损坏");
             if((long)opts.outWidth*opts.outHeight>150_000_000L)throw new IOException("图片尺寸超过安全处理范围");
@@ -126,7 +128,15 @@ final class Store {
                 try{save(d);}catch(ManifestFence.Uncertain uncertain){throw uncertain;}catch(Exception e){d.pages.remove(p);throw e;}
             }
             return p;
-        } finally {if(tmp.exists())tmp.delete();}
+        } catch (InterruptedIOException interrupted) {
+            InterruptedIOException failure=new InterruptedIOException("图片导入中断；已接收的暂存保留在应用私有目录，可能不完整，目前不能在界面找回");failure.initCause(interrupted);throw failure;
+        } catch (ManifestFence.Uncertain uncertain) {
+            throw uncertain;
+        } catch (Exception failure) {
+            String detail=failure.getMessage()==null?"请检查原文件与存储空间":failure.getMessage();
+            String retained=dst.exists()?"原图已保存，可重新打开文稿后从“更多”找回原图":"若已接收数据，其暂存保留在应用私有目录，可能不完整，目前不能在界面找回";
+            throw new IOException("图片导入失败："+detail+"；"+retained,failure);
+        }
     }
     static final class CaptureImport {
         final Models.Document document;final Models.Page page;final boolean added;
@@ -170,6 +180,9 @@ final class Store {
         requireCertain(d);
         HashSet<String> known=new HashSet<>();for(Models.Page p:d.pages)known.add(p.file);File folder=new File(dir(d),"originals");File[] files=folder.listFiles();if(files==null)return 0;Arrays.sort(files,Comparator.comparing(File::getName));ArrayList<Models.Page> recovered=new ArrayList<>();
         for(File f:files)if(f.getName().matches("[a-f0-9-]{36}\\.image")&&!known.contains("originals/"+f.getName())){
+            // Leave a suspect original untouched and report the problem instead
+            // of promoting it to a page solely because its header has dimensions.
+            CameraInbox.requireCompleteIfJpeg(f);
             BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(f.getPath(),options);if(options.outWidth<2||options.outHeight<2||(long)options.outWidth*options.outHeight>150_000_000L)continue;
             MessageDigest hash=MessageDigest.getInstance("SHA-256");try(InputStream in=new FileInputStream(f)){byte[] buffer=new byte[65536];int n;while((n=in.read(buffer))!=-1)hash.update(buffer,0,n);}
             Models.Page p=new Models.Page();p.id=f.getName().substring(0,36);p.file="originals/"+f.getName();p.sha256=hex(hash.digest());recovered.add(p);
@@ -182,36 +195,172 @@ final class Store {
     }
     synchronized Models.Document restore(InputStream input) throws Exception {
         if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
-        File stage=new File(context.getCacheDir(),"restore-"+UUID.randomUUID());stage.mkdirs();
+        // A cache directory can be evicted before a one-shot source can be read
+        // again. Keep failed, possibly partial extraction in private files instead.
+        // This is a conservative estimate, not a reservation: writes still may fail.
+        // Fail before consuming a one-shot source when even the receive reserve is unavailable.
+        requireRestoreSpace(context.getFilesDir(),1);
+        File stage=new File(context.getFilesDir(),"restore-intake/restore-"+UUID.randomUUID());
+        if(!stage.mkdirs())throw new IOException("无法创建备份恢复暂存目录");
         try {
+            // Preserve the one-shot archive before extraction. This extra copy is
+            // bounded independently of the uncompressed-entry limit below.
+            File raw=new File(stage,"received.zip");
+            if(!raw.createNewFile())throw new IOException("备份暂存位置已存在，未覆盖");
+            try(FileOutputStream out=new FileOutputStream(raw)){
+                try{
+                    byte[] buffer=new byte[65536];long size=0;
+                    while(true){
+                        if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断");
+                        // Limit the read to current headroom; do not require a whole
+                        // buffer just to discover EOF after a small complete archive.
+                        int readLimit=(int)Math.min(buffer.length,requireRestoreSpace(stage,1));
+                        int n=input.read(buffer,0,readLimit);if(n==-1)break;
+                        if(n==0)throw new IOException("备份来源未返回数据，已停止接收以避免无进展循环");
+                        requireRestoreSpace(stage,n);
+                        if(size+n>512L*1024*1024)throw new IOException("备份压缩文件超过 512 MiB");
+                        out.write(buffer,0,n);size+=n;
+                    }
+                    out.getFD().sync();
+                }catch(IOException failure){try{out.getFD().sync();}catch(IOException syncFailure){failure.addSuppressed(syncFailure);}throw failure;}
+            }
+            // ZipInputStream alone accepts an archive without a central directory.
+            // ZipFile requires one; compare its entry metadata with the local
+            // stream and actual extracted data before publishing any pages.
+            HashMap<String,ZipEntry> central=new HashMap<>();long declared=0;
+            try(ZipFile file=new ZipFile(raw)){
+                Enumeration<? extends ZipEntry> entries=file.entries();
+                while(entries.hasMoreElements()){
+                    ZipEntry item=entries.nextElement();String name=item.getName();
+                    if(item.isDirectory()){
+                        if(!name.equals("originals/"))throw new IOException("备份包含不支持的路径");
+                    }else if(!name.equals("manifest.json")&&!name.matches("originals/[a-f0-9-]{36}\\.image"))throw new IOException("备份包含不支持的路径");
+                    if(central.put(name,item)!=null||central.size()>1002)throw new IOException("备份包含重复或过多文件");
+                    if(item.getSize()<0||item.getCrc()<0)throw new IOException("备份中央目录不完整");
+                    if(!item.isDirectory()){
+                        long limit=name.equals("manifest.json")?2L*1024*1024:100L*1024*1024;
+                        if(item.getSize()>limit||item.getSize()>512L*1024*1024-declared)throw new IOException("备份超过安全尺寸限制");
+                        declared+=item.getSize();
+                    }
+                }
+            }
+            // Keep raw + extracted intake. Budget another independent published copy;
+            // counting the manifest twice is intentionally conservative.
+            requireRestoreSpace(stage,declared*2);
             HashSet<String> names=new HashSet<>();long total=0;int count=0;
-            try(ZipInputStream zip=new ZipInputStream(input)){
+            try(ZipInputStream zip=new ZipInputStream(new FileInputStream(raw))){
                 ZipEntry entry;byte[] buffer=new byte[65536];
                 while((entry=zip.getNextEntry())!=null){
                     if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
-                    if(entry.isDirectory())continue;String name=entry.getName();
+                    String name=entry.getName();ZipEntry listed=central.remove(name);
+                    if(listed==null||listed.isDirectory()!=entry.isDirectory()||listed.getMethod()!=entry.getMethod())throw new IOException("备份本地记录与中央目录不一致");
+                    if(entry.isDirectory()){
+                        if(listed.getSize()!=0||listed.getCrc()!=0||zip.read()!=-1)throw new IOException("备份目录条目无效");
+                        continue;
+                    }
                     if(!name.equals("manifest.json")&&!name.matches("originals/[a-f0-9-]{36}\\.image"))throw new IOException("备份包含不支持的路径");
                     if(!names.add(name)||++count>1001)throw new IOException("备份包含重复或过多文件");
-                    File outFile=new File(stage,name);outFile.getParentFile().mkdirs();long size=0;
-                    try(OutputStream out=new FileOutputStream(outFile)){int n;while((n=zip.read(buffer))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");size+=n;total+=n;if(total>512L*1024*1024||size>100L*1024*1024||(name.equals("manifest.json")&&size>2*1024*1024))throw new IOException("备份超过安全尺寸限制");out.write(buffer,0,n);}}
+                    File outFile=new File(stage,name);outFile.getParentFile().mkdirs();long size=0;CRC32 crc=new CRC32();
+                    try(OutputStream out=new FileOutputStream(outFile)){int n;while((n=zip.read(buffer))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");size+=n;total+=n;if(total>512L*1024*1024||size>100L*1024*1024||(name.equals("manifest.json")&&size>2*1024*1024))throw new IOException("备份超过安全尺寸限制");requireRestoreSpace(stage,n);out.write(buffer,0,n);crc.update(buffer,0,n);}}
+                    if(size!=listed.getSize()||crc.getValue()!=listed.getCrc()||entry.getCompressedSize()!=listed.getCompressedSize())throw new IOException("备份本地记录与中央目录不一致");
+                }
+            }
+            if(!central.isEmpty())throw new IOException("备份缺少中央目录所列文件");
+            // Names, sizes and CRC alone do not prove that a malicious central
+            // offset points at the same bytes as the sequential local record.
+            // Compare SHA-256 of the central view with the extracted local view.
+            try(ZipFile file=new ZipFile(raw)){
+                Enumeration<? extends ZipEntry> entries=file.entries();long checked=0;
+                while(entries.hasMoreElements()){
+                    ZipEntry item=entries.nextElement();if(item.isDirectory())continue;
+                    MessageDigest fromCentral=MessageDigest.getInstance("SHA-256"),fromLocal=MessageDigest.getInstance("SHA-256");
+                    try(InputStream center=file.getInputStream(item);InputStream local=new FileInputStream(new File(stage,item.getName()))){
+                        byte[] b=new byte[65536];int n;long size=0;
+                        while((n=center.read(b))!=-1){
+                            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份检查已中断");
+                            size+=n;checked+=n;if(size>100L*1024*1024||checked>512L*1024*1024)throw new IOException("备份超过安全尺寸限制");
+                            fromCentral.update(b,0,n);
+                        }
+                        while((n=local.read(b))!=-1){if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份检查已中断");fromLocal.update(b,0,n);}
+                    }
+                    if(!MessageDigest.isEqual(fromCentral.digest(),fromLocal.digest()))throw new IOException("备份本地记录与中央目录内容不一致");
                 }
             }
             File manifest=new File(stage,"manifest.json");if(!manifest.isFile())throw new IOException("备份缺少文稿参数");
             Models.Document restored;
-            try(InputStream in=new FileInputStream(manifest)){restored=Models.Document.from(new JSONObject(new String(readLimited(in,2*1024*1024),StandardCharsets.UTF_8)));}
+            try(InputStream in=new FileInputStream(manifest)){
+                byte[] manifestBytes=readLimited(in,2*1024*1024);
+                StrictJsonValidator.validate(manifestBytes);
+                restored=Models.Document.from(new JSONObject(new String(manifestBytes,StandardCharsets.UTF_8)));
+            }
             HashSet<String> pageNames=new HashSet<>();
             for(Models.Page p:restored.pages){
                 safeId(p.id);if(!p.file.equals("originals/"+p.id+".image")||!pageNames.add(p.file))throw new IOException("备份页面路径无效");
                 File original=new File(stage,p.file);if(!original.isFile())throw new IOException("备份缺少原图");MessageDigest sha=MessageDigest.getInstance("SHA-256");
                 try(InputStream in=new FileInputStream(original)){byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)sha.update(b,0,n);}
                 if(!hex(sha.digest()).equals(p.sha256))throw new IOException("备份原图校验失败");
+                CameraInbox.requireCompleteIfJpeg(original);
                 BitmapFactory.Options options=new BitmapFactory.Options();options.inJustDecodeBounds=true;BitmapFactory.decodeFile(original.getPath(),options);if(options.outWidth<2||options.outHeight<2||(long)options.outWidth*options.outHeight>150_000_000L)throw new IOException("备份图片无法安全读取");
             }
+            // Never discard an unreferenced original when a one-shot archive is
+            // accepted and its temporary files are removed after publication.
+            HashSet<String> expectedFiles=new HashSet<>(pageNames);expectedFiles.add("manifest.json");
+            if(!names.equals(expectedFiles))throw new IOException("备份含未列入文稿的文件，所有已接收数据保留");
             restored.id=UUID.randomUUID().toString();restored.archived=false;restored.title+="（恢复）";
-            File originals=new File(dir(restored),"originals");originals.mkdirs();
-            for(Models.Page p:restored.pages)java.nio.file.Files.copy(new File(stage,p.file).toPath(),new File(dir(restored),p.file).toPath());
+            requireRestoreSpace(stage,declared);
+            File originals=new File(dir(restored),"originals");
+            if(!originals.isDirectory()&&!originals.mkdirs())throw new IOException("无法创建恢复原图目录");
+            for(Models.Page p:restored.pages){
+                if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
+                File source=new File(stage,p.file),destination=new File(dir(restored),p.file);
+                long originalBytes=source.length();
+                if(originalBytes<=0||originalBytes>100L*1024*1024)throw new IOException("恢复原图大小已变化");
+                requireRestoreSpace(stage,originalBytes);
+                // Write and force through the same CREATE_NEW handle; never overwrite.
+                // Surface write/force errors before saving a manifest, retaining partial bytes.
+                try(InputStream in=new FileInputStream(source);java.nio.channels.FileChannel channel=java.nio.channels.FileChannel.open(destination.toPath(),java.nio.file.StandardOpenOption.CREATE_NEW,java.nio.file.StandardOpenOption.WRITE)){
+                    byte[] bytes=new byte[65536];int n;long written=0;
+                    while((n=in.read(bytes))!=-1){
+                        if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
+                        written+=n;if(written>originalBytes)throw new IOException("恢复原图大小已变化");
+                        requireRestoreSpace(stage,n);java.nio.ByteBuffer chunk=java.nio.ByteBuffer.wrap(bytes,0,n);
+                        while(chunk.hasRemaining()){
+                            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
+                            // A channel may legally return zero. Stop conservatively rather
+                            // than spin/retry indefinitely; raw/extracted originals remain.
+                            if(channel.write(chunk)==0)throw new IOException("恢复原图写入无进展，已停止并保留收到的数据");
+                        }
+                    }
+                    channel.force(true);
+                }
+                // Re-read the destination instead of trusting only the source-side digest.
+                MessageDigest copied=MessageDigest.getInstance("SHA-256");long copiedBytes=0;
+                try(InputStream in=new FileInputStream(destination)){
+                    byte[] bytes=new byte[65536];int n;
+                    while((n=in.read(bytes))!=-1){
+                        if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("备份恢复已中断，原有文稿未改变");
+                        copiedBytes+=n;if(copiedBytes>originalBytes)throw new IOException("恢复原图副本长度不符");copied.update(bytes,0,n);
+                    }
+                }
+                if(copiedBytes!=originalBytes||!hex(copied.digest()).equals(p.sha256))throw new IOException("恢复原图副本校验失败");
+            }
+            // Retain the intake even on success until a symlink-safe,
+            // user-visible cleanup path exists; never recursively follow an
+            // unexpected link into other app data.
             save(restored);return restored;
-        }finally{removeTemporary(stage);}
+        }catch(InterruptedIOException interrupted){
+            InterruptedIOException failure=new InterruptedIOException("备份恢复中断；已接收的暂存保留在应用私有目录，可能不完整；可在“查看备份恢复暂存”中核对或导出已收到片段，不代表可以续传或完整恢复");failure.initCause(interrupted);throw failure;
+        }catch(ManifestFence.Uncertain uncertain){throw uncertain;
+        }catch(Exception failure){String detail=failure.getMessage()==null?"请检查备份与存储空间":failure.getMessage();throw new IOException("备份恢复失败："+detail+"；已接收的暂存保留在应用私有目录，可能不完整；可在“查看备份恢复暂存”中核对或导出已收到片段，不代表可以续传或完整恢复",failure);
+        }
+    }
+    private static long requireRestoreSpace(File filesystem,long extra)throws IOException{
+        // getUsableSpace is only a hint and may be zero when capacity is unknown.
+        // Fail closed without deleting intake, user documents, or other app data.
+        final long reserve=32L*1024*1024;
+        long usable=filesystem.getUsableSpace();
+        if(extra<0||usable<reserve||extra>usable-reserve)throw new IOException("剩余空间不足或无法核实；恢复还需要额外空间，未自动清理暂存");
+        return usable-reserve;
     }
     private static void removeTemporary(File f){File[] children=f.listFiles();if(children!=null)for(File c:children)removeTemporary(c);f.delete();}
     private static String snapshotDigest(JSONObject value)throws Exception{return hex(MessageDigest.getInstance("SHA-256").digest(value.toString().getBytes(StandardCharsets.UTF_8)));}

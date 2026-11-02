@@ -11,6 +11,12 @@ Android 文档扫描项目，目标是本地拍摄或导入图片、识别页面
 - `ocrnative/`、`tools/prepare_ocr_source.py` 和 `docs/OCR-DEPENDENCIES.json`：固定来源的 OCR 原生依赖配置、获取说明与校验信息。
 - `third_party/` 与 `app/src/main/assets/notices/`：上游补丁和第三方许可说明。
 
+## 最近进展与验证
+
+2026-11-02 源码更新包含导入／恢复保留与校验、手动裁切确认、OCR／PDF 修订标识、明确保存的编辑副本，以及可取消的批次锁等待。已有独立核对的完整 Android 构建证据，但**不等于公开仓库全新克隆可复现构建，也不代表真机或运行时验收通过**。
+
+运行无需下载依赖的主机回归：`python3 tools/test_host.py`（需已有 Python 与完整 JDK）。测试使用合成输入及明确标注的替身；相近亮度阴影仍可能裁掉页面，必须人工核对。完整范围、构建证据与已知限制见 [开发与验证记录](docs/DEVELOPMENT.md)。
+
 ## 构建与隐私限制
 
 源码快照不含 APK、OCR 模型和字体、Android SDK/NDK 或上游 OCR 原生源码；尚未在全新环境完成可复现构建。构建脚本目前沿用原开发工作区的 `.tools` 布局，不应假定克隆后即可直接构建；需先核对并准备 `docs/OCR-DEPENDENCIES.json` 中的固定来源、散列和相应许可，并审阅脚本。禁止把私人扫描件放进问题报告或仓库。

@@ -26,20 +26,22 @@ public final class PageDetector {
         if(!Geometry.valid(q)||!supportedEdges(p,w,h,q))return Geometry.full();
 
         // A hard illumination boundary can itself look like four supported
-        // edges. Check a lower threshold above the observed frame background:
-        // if a larger, still bounded sheet surrounds that lit patch, do not
-        // silently crop to the patch. The user can choose the real four corners.
+        // edges. Check a lower threshold at the observed frame-background
+        // percentile: if a substantially larger region is connected to that
+        // lit patch, do not silently crop to it. The user can choose corners.
         int[] frame=new int[256];int frameN=0;
         for(int y=0;y<h;y++)for(int x=0;x<w;x++)if(x==0||y==0||x==w-1||y==h-1){frame[Enhance.gray(p[y*w+x])]++;frameN++;}
         int total=0,background=0;
         for(;background<255;background++){total+=frame[background];if(total>=frameN*.75)break;}
-        int lower=Math.max(background+12,(background+threshold)/2);
+        // A heavy shadow can leave real paper only slightly brighter than the
+        // frame, below the old midpoint threshold. Any substantially larger
+        // connected region at a conservative background-relative threshold
+        // makes the bright patch ambiguous, even if it reaches the frame or its
+        // outer edges are too weak to certify. Fall back to manual corners.
+        int lower=background;
         if(lower<threshold-4){
             Candidate outer=component(p,w,h,lower);
-            if(outer.size>best.size*1.15&&outer.size<p.length*.96){
-                double[] expanded=quad(outer.corners,w,h);
-                if(Geometry.valid(expanded)&&supportedEdges(p,w,h,expanded))return Geometry.full();
-            }
+            if(outer.size>best.size*1.15)return Geometry.full();
         }
         return q;
     }

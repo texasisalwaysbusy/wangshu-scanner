@@ -13,15 +13,30 @@ import java.util.*;
 
 /** Entirely offline Tesseract 5; text is optional and never replaces original raster content. */
 final class OcrEngine {
-    static String key(Models.Page p){return p.sha256+Arrays.toString(p.quad)+p.rotation+p.mode+p.brightness+p.bias+p.shadows;}
+    /** Versioned, length-framed inputs: adjacent numeric values cannot alias. */
+    static String key(Models.Page p){
+        StringBuilder out=new StringBuilder("ocr-key-v2|");
+        keyPart(out,String.valueOf(p.sha256));keyPart(out,Arrays.toString(p.quad));
+        keyPart(out,String.valueOf(p.rotation));keyPart(out,String.valueOf(p.mode));
+        keyPart(out,String.valueOf(p.brightness));keyPart(out,String.valueOf(p.bias));keyPart(out,String.valueOf(p.shadows));
+        return out.toString();
+    }
+    private static void keyPart(StringBuilder out,String value){out.append(value.length()).append(':').append(value);}
     private static TessBaseAPI open(Context context,String language) throws IOException {
-        File root=new File(context.getFilesDir(),"ocr"),data=new File(root,"tessdata");data.mkdirs();
+        File data=OcrAssetIntegrity.prepareDirectory(context.getFilesDir()),root=data.getParentFile();
         for(String name:new String[]{"eng.traineddata","chi_sim.traineddata","pdf.ttf"}){
-            File target=new File(data,name);
-            if(!target.isFile()||target.length()==0){File part=new File(data,name+".part");try(InputStream in=context.getAssets().open("tessdata/"+name);OutputStream out=new FileOutputStream(part)){byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}if(!part.renameTo(target))throw new IOException("无法准备本地识别模型");}
+            OcrAssetIntegrity.prepare(data,name,asset->context.getAssets().open("tessdata/"+asset));
         }
-        TessBaseAPI[] holder=new TessBaseAPI[1];TessBaseAPI api=new TessBaseAPI(values->{if(Thread.currentThread().isInterrupted()&&holder[0]!=null)holder[0].stop();});holder[0]=api;if(!api.init(root.getPath(),language)){api.recycle();throw new IOException("本地文字识别初始化失败");}
-        api.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);api.setVariable("user_defined_dpi","300");return api;
+        TessBaseAPI[] holder=new TessBaseAPI[1];TessBaseAPI api=new TessBaseAPI(values->{if(Thread.currentThread().isInterrupted()&&holder[0]!=null)holder[0].stop();});holder[0]=api;
+        boolean ready=false;Throwable failure=null;
+        try{
+            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("本地文字识别初始化已取消");
+            if(!api.init(root.getPath(),language))throw new IOException("本地文字识别初始化失败");
+            api.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);api.setVariable("user_defined_dpi","300");
+            if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("本地文字识别初始化已取消");
+            ready=true;return api;
+        }catch(IOException|RuntimeException|Error problem){failure=problem;throw problem;}
+        finally{if(!ready)try{api.recycle();}catch(RuntimeException|Error cleanup){if(failure!=null){if(cleanup!=failure)failure.addSuppressed(cleanup);}else throw cleanup;}}
     }
     static void recognize(Store store,Models.Document doc,String language,Exporter.Progress progress) throws Exception {
         TessBaseAPI api=open(store.context,language);
@@ -29,10 +44,15 @@ final class OcrEngine {
             ArrayList<Models.Page> pages=doc.active();for(int i=0;i<pages.size();i++){
                 if(Thread.currentThread().isInterrupted())throw new IOException("已取消，已完成页面的文字仍保留");
                 Models.Page p=pages.get(i);Bitmap b=Renderer.render(store.original(doc,p),p,2400);
-                try{api.setImage(b);String recognized=api.getUTF8Text();if(Thread.currentThread().isInterrupted())throw new IOException("已取消，已完成页面的文字仍保留");DocumentMutations.ocr(doc,p,recognized,key(p),language,store::saveIfCurrent);api.clear();}finally{b.recycle();}
+                try{api.setImage(b);String recognized=api.getUTF8Text();if(Thread.currentThread().isInterrupted())throw new IOException("已取消，已完成页面的文字仍保留");DocumentMutations.ocr(doc,p,requireRecognizedText(recognized),key(p),language,store::saveIfCurrent);api.clear();}finally{b.recycle();}
                 progress.update(i+1,pages.size());
             }
         }finally{api.recycle();}
+    }
+    /** A failed recognition must not replace an existing result with empty text. */
+    static String requireRecognizedText(String text)throws IOException{
+        if(text==null)throw new IOException("文字识别未返回结果；本页已有识别文字保留，请稍后重试。");
+        return text;
     }
     static File searchablePdf(Store store,Models.Document doc,File folder,String language,int maxEdge,Exporter.Progress progress) throws Exception {
         ArrayList<Models.Page> pages=doc.active();if(pages.isEmpty())throw new IOException("请先添加页面");folder.mkdirs();String base="searchable-"+UUID.randomUUID();File output=new File(folder,base+".pdf");

@@ -14,7 +14,11 @@ public final class Geometry {
             if (cross<=0.00001) return false;
             area+=q[2*i]*q[2*j+1]-q[2*j]*q[2*i+1];
         }
-        return area/2>0.015;
+        // Permit useful small regions (e.g. a 1000×1000 crop of a 10000×10000
+        // image) while retaining a conservative normalized-area floor. Image
+        // pixel dimensions are not known here; callers must still validate
+        // their render plan and cannot infer real detail from this predicate.
+        return area/2>0.001;
     }
     /** 8 coefficients mapping destination rectangle pixels into source quad pixels. */
     public static double[] inverse(double[] q,int sw,int sh,int dw,int dh) {
