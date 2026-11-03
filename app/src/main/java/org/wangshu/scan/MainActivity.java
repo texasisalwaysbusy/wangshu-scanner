@@ -11,6 +11,9 @@ import android.os.*;
 import android.provider.MediaStore;
 import android.view.*;
 import android.widget.*;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.InputType;
 import org.wangshu.scan.core.Geometry;
 import java.io.*;
 import java.util.*;
@@ -68,7 +71,7 @@ public final class MainActivity extends Activity {
     private String pendingKind="pdf";
     private boolean exportA4=true;
     private int exportEdge=2800;
-    private TextView editorStatus;
+    private TextView editorStatus,ocrStatus;
     private volatile Thread operationThread;
     private volatile boolean cancelOperation;
 
@@ -199,7 +202,7 @@ public final class MainActivity extends Activity {
     private LinearLayout row(){LinearLayout l=new LinearLayout(this);l.setOrientation(LinearLayout.HORIZONTAL);l.setGravity(Gravity.CENTER_VERTICAL);return l;}
     private void weighted(LinearLayout row,View v){LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1);lp.setMargins(dp(2),dp(3),dp(2),dp(3));row.addView(v,lp);}
     private void base(String title,String subtitle,Runnable back){
-        generation++;previewGeneration++;cropping=false;cropView=null;preview=null;releaseImages();
+        generation++;previewGeneration++;cropping=false;cropView=null;preview=null;ocrStatus=null;releaseImages();
         if(watchdog!=null)watchdog.phase("screen-build");
         root=column();root.setBackgroundColor(PAPER);root.setPadding(dp(16),dp(8),dp(16),dp(10));root.setFocusableInTouchMode(true);
         root.setOnApplyWindowInsetsListener((v,insets)->{
@@ -276,6 +279,7 @@ public final class MainActivity extends Activity {
         Models.Document owner=document;ArrayList<Models.Page> pages=document.active();int viewGeneration=generation;
         // Global inbox is not tied to this document: keep a discoverable neutral
         // entry even before/after a delayed receipt arrives; user chooses the action.
+        list.addView(button("逐页核对 / 纠错识别文字",this::showOcrReviewPages));
         inboxNotice=button("拍照收件箱 · 检查待核对文件",this::cameraInbox);list.addView(inboxNotice);refreshInboxNotice();
         if(pages.isEmpty())list.addView(text("这份文稿还没有页面\n\n拍照，或一次导入多张图片。之后可以裁切、增强、调整顺序。",18,MUTED));
         for(int i=0;i<pages.size();i++){
@@ -338,7 +342,7 @@ public final class MainActivity extends Activity {
         String[] labels=new String[removed.size()];for(int i=0;i<labels.length;i++)labels[i]="恢复页面 "+(i+1)+" · "+modeName(removed.get(i).mode);
         new AlertDialog.Builder(this).setTitle("恢复页面（原图保留）").setItems(labels,(d,w)->saveThenShow(owner,()->DocumentMutations.removed(owner,removed.get(w),false,store::saveIfCurrent))).setNegativeButton("关闭",null).show();
     }
-    private void documentMenu(){new AlertDialog.Builder(this).setTitle("文稿操作").setItems(new String[]{"备份原图与编辑参数（ZIP）","隐藏文稿（保留文件）","查看原图保留说明","本地识别文字（中英）","查看 / 复制识别文字","找回中断导入（追加到末尾）","分享已生成的 PDF","再次保存已生成的 PDF","拍照收件箱（找回未导入照片）","查找已结束批次的迟到拍照","找回暂存编辑","预览已生成的 PDF"},(dialog,which)->{
+    private void documentMenu(){new AlertDialog.Builder(this).setTitle("文稿操作").setItems(new String[]{"备份原图与编辑参数（ZIP）","隐藏文稿（保留文件）","查看原图保留说明","本地识别文字（中英）","查看 / 复制 / 逐页纠错识别文字","找回中断导入（追加到末尾）","分享已生成的 PDF","再次保存已生成的 PDF","拍照收件箱（找回未导入照片）","查找已结束批次的迟到拍照","找回暂存编辑","预览已生成的 PDF"},(dialog,which)->{
         if(which==0){Models.Document owner=document;runIO("正在打包原图…",()->{Models.Document copy=store.snapshotForExport(owner);File file=Exporter.backup(store,copy,new File(getCacheDir(),"exports"));verifyExportSnapshot(owner,copy);return file;},f->{if(document!=owner){toast("文稿已切换，备份仍保留在本地缓存");return;}pendingExport=(File)f;approvedExportSource=pendingExport;approvedExportDigest=null;approvedExportBytes=0;pendingKind="zip";saveExport();});}
         else if(which==1){Models.Document owner=document;new AlertDialog.Builder(this).setMessage("文稿将从列表隐藏，原始文件仍保留在应用私有目录。请先导出 ZIP 备份；可通过备份恢复。是否隐藏？").setPositiveButton("隐藏",(d,w)->{saveEdit(owner,()->DocumentMutations.archived(owner,true,store::saveIfCurrent),()->showLibrary(""));}).setNegativeButton("取消",null).show();}
         else if(which==2)about();else if(which==3)recognizeText();else if(which==4)showText();else if(which==5){Models.Document target=document;runIO("正在查找已保存的原图…",()->store.recoverOrphans(target),count->{showDocument();toast("已找回 "+count+" 页，追加到文稿末尾；已有页面不变");});}else if(which==8)cameraInbox();else if(which==9)recoverClosedCapture();else if(which==10)recoverEditCheckpoint();else if(which==11)previewPdf();else reusePdf(which==6);
@@ -353,7 +357,67 @@ public final class MainActivity extends Activity {
             value.append(current?"当前识别":"旧识别，仅供参考（不参与搜索或 PDF 文字层）");if(!page.cropConfirmed())value.append(" · 四角待核对，文字可能缺失");value.append(" ——\n").append(page.ocrText).append("\n\n");
         }return value.toString();
     }
-    private void showText(){String value=describeOcrPages(document);if(value.isEmpty()){toast("尚无识别文字，请先在“更多”中运行本地识别");return;}TextView t=text(value,16,INK);t.setTextIsSelectable(true);ScrollView scroll=new ScrollView(this);scroll.setPadding(dp(16),0,dp(16),0);scroll.addView(t);new AlertDialog.Builder(this).setTitle("识别文字 · 请核对原图").setView(scroll).setPositiveButton("复制全部",(d,w)->{((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("识别文字",value));toast("已复制");}).setNegativeButton("关闭",null).show();}
+    private void showText(){String value=describeOcrPages(document);if(value.isEmpty()){showOcrReviewPages();return;}TextView t=text(value,16,INK);t.setTextIsSelectable(true);ScrollView scroll=new ScrollView(this);scroll.setPadding(dp(16),0,dp(16),0);scroll.addView(t);new AlertDialog.Builder(this).setTitle("已保存的识别文字 · 请核对原图").setView(scroll).setPositiveButton("复制全部",(d,w)->{((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("识别文字",value));toast("已复制已保存的文字");}).setNeutralButton("逐页纠错",(d,w)->showOcrReviewPages()).setNegativeButton("关闭",null).show();}
+    private static String ocrPageStatus(Models.Page page){
+        if(page.ocrKey.isEmpty())return "尚无识别基线 · 文字仅供查看 / 复制";
+        if(!page.ocrKey.equals(OcrEngine.key(page)))return "旧识别 · 不参与搜索";
+        if(!page.cropConfirmed())return "四角待核对 · 不参与搜索";
+        return page.ocrText.isEmpty()?"当前识别文字为空":"当前图像对应的文字 · 请人工核对";
+    }
+    private void showOcrReviewPages(){
+        Models.Document owner=document;if(owner==null)return;
+        ArrayList<Models.Page> pages=owner.active();if(pages.isEmpty()){toast("请先添加页面");return;}
+        String[] labels=new String[pages.size()];
+        for(int i=0;i<pages.size();i++)labels[i]="第 "+(i+1)+" 页 · "+ocrPageStatus(pages.get(i));
+        new AlertDialog.Builder(this).setTitle("选择页面 · 对照预览纠错").setItems(labels,(dialog,which)->{
+            Models.Page page=pages.get(which);
+            if(document!=owner||screen!=1||busy||!alive()||stateSaved||!resumed||owner.manifestUncertain||!owner.active().contains(page)){
+                toast("文稿或页面状态已变化，请重新选择");return;
+            }
+            openEditor(page);
+        }).setNegativeButton("关闭",null).show();
+    }
+    private static String ocrReviewStatus(Models.Page page,Models.Page saved){
+        String state=saved!=null&&Objects.equals(page.ocrText,saved.ocrText)?"文字与已保存版本一致":"文字已修改 · 尚未保存";
+        return state+"\n"+ocrPageStatus(page);
+    }
+    /** Text callbacks belong to this exact draft and rendered editor, even for the same page ID. */
+    private boolean updateOcrDraft(Object session,Models.Document owner,Models.Page page,int viewGeneration,String value){
+        if(value==null||session==null||owner==null||page==null||document!=owner||draft!=page||editorSession!=session
+                ||generation!=viewGeneration||screen!=2||cropping||busy||!alive()||stateSaved||!resumed
+                ||owner.manifestUncertain||recovery!=null||editorSaves.hasPending())return false;
+        page.ocrText=value; // Never refresh ocrKey/language: stale OCR stays stale after correction.
+        return true;
+    }
+    private void addOcrEditor(LinearLayout controls){
+        final Models.Document owner=document;final Models.Page page=draft;final Object session=editorSession;final int viewGeneration=generation;
+        controls.addView(text("本页文字 · 对照上方预览核对 / 纠错",16,INK));
+        TextView status=text(ocrReviewStatus(page,originalPage),13,MUTED);ocrStatus=status;controls.addView(status);
+        EditText input=new EditText(this);input.setTextColor(INK);input.setHintTextColor(MUTED);input.setTextSize(16);
+        input.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setGravity(Gravity.TOP);input.setMinLines(4);input.setMaxLines(8);
+        input.setHint("尚无文字，可手动抄录；不自动变为当前识别结果");input.setContentDescription("本页识别文字纠错，保存本页后生效");
+        input.setText(page.ocrText); // Install restored text before attaching the listener.
+        input.addTextChangedListener(new TextWatcher(){
+            private boolean restoring;
+            public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+            public void onTextChanged(CharSequence s,int start,int before,int count){}
+            public void afterTextChanged(Editable value){
+                if(restoring)return;
+                if(updateOcrDraft(session,owner,page,viewGeneration,value.toString()))status.setText(ocrReviewStatus(page,originalPage));
+                else{ // A rejected IME callback must not leave visible text that cannot be saved.
+                    restoring=true;try{input.setText(page.ocrText);}finally{restoring=false;}
+                }
+            }
+        });
+        controls.addView(input,new LinearLayout.LayoutParams(-1,-2));
+        controls.addView(button("复制本页文字（含当前修改）",()->{
+            if(document!=owner||draft!=page||editorSession!=session||generation!=viewGeneration||screen!=2)return;
+            ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("本页文字",page.ocrText));
+            toast("已复制本页文字；复制不会保存修改");
+        }));
+        controls.addView(text("输入不会自动写盘，请保存本页或暂存编辑副本。旧识别仍不参与搜索；重新识别会替换文字。可搜索 PDF 会重新识别，不使用这里的纠错文字，公式和手写请以原图为准。",13,MUTED));
+    }
     private void restoreDocuments(){
         runIO("正在查找隐藏的文稿…",()->{
         ArrayList<Models.Document> hidden=new ArrayList<>();File[] folders=store.root.listFiles();if(folders!=null)for(File f:folders)if(f.isDirectory()&&!f.getName().startsWith("."))try{Models.Document d=store.load(f.getName());if(d.archived)hidden.add(d);}catch(Exception ignored){}
@@ -608,15 +672,18 @@ public final class MainActivity extends Activity {
         LinearLayout tools=row();weighted(tools,button("四角裁切",this::startCrop));weighted(tools,button("旋转 90°",()->{draft.rotation=(draft.rotation+1)%4;buildEditor();}));weighted(tools,button("重置",()->{draft.quad=Geometry.full();draft.rotation=0;draft.mode="COLOR";draft.shadows=false;draft.brightness=0;draft.bias=8;buildEditor();}));controls.addView(tools);
         LinearLayout adjust=row();weighted(adjust,button("亮度 / 黑白细节",this::adjustments));CheckBox shadow=new CheckBox(this);shadow.setText("减淡阴影");shadow.setTextColor(INK);shadow.setChecked(draft.shadows);shadow.setOnCheckedChangeListener((v,checked)->{draft.shadows=checked;requestPreview();});weighted(adjust,shadow);controls.addView(adjust);
         controls.addView(text("缺角或纸张超出画面时，自动边界可能不可靠。请在“四角裁切”中恢复全图并核对；画面外的内容需要重拍，裁切无法补回。",13,MUTED));
+        addOcrEditor(controls);
         TextView capacity=text("正在核对恢复记录余量…",12,MUTED);controls.addView(capacity);fillRecoveryQuota(capacity,document.id,true);
         controls.addView(button("暂存编辑副本（不改已保存页面）",this::checkpointEditor));
-        LinearLayout footer=row();weighted(footer,button("导出本页图片",this::exportPageImage));weighted(footer,button("保存并返回",this::saveEditor));root.addView(footer);
+        LinearLayout footer=row();weighted(footer,button("导出本页图片",this::exportPageImage));weighted(footer,button("保存本页并返回",this::saveEditor));root.addView(footer);
         Button advance=primary(position==order.size()-1?"保存并返回文稿（末页）":"保存并下一页",()->saveEditor(true));
         advance.setEnabled(position>=0&&draft.cropConfirmed()&&document!=null&&!document.manifestUncertain);
         advance.setContentDescription(draft.cropConfirmed()?advance.getText():"请先核对并确认四角，再保存并下一页");
         root.addView(advance,new LinearLayout.LayoutParams(-1,dp(52)));requestPreview();
     }
+    private void refreshOcrStatus(){if(ocrStatus!=null&&draft!=null)ocrStatus.setText(ocrReviewStatus(draft,originalPage));}
     private void requestPreview(){
+        refreshOcrStatus();
         if(draft==null||preview==null||cropping)return;int ticket=++previewGeneration;ImageView target=preview;Models.Document d=document;Models.Page p;
         try{p=draft.copy();}catch(Exception e){error(e);return;}editorStatus.setText(modeName(p.mode)+" · 正在更新…");
         worker.execute(()->{
@@ -732,14 +799,14 @@ public final class MainActivity extends Activity {
                     showRecovery("保存后磁盘文稿版本或页序已变化；不自动跳页，不把旧编辑套到新版本。恢复记录保留。");return;
                 }
                 recovery=null;document=checked.fresh;
-                if(!request.advance){showDocument();return;}
-                if(request.nextPageId==null){showDocument();toast("已保存当前末页，返回文稿");return;}
-                for(Models.Page page:document.active())if(page.id.equals(request.nextPageId)){openEditor(page);return;}
+                if(!request.advance){showDocument();toast("本页与文字修改已保存");return;}
+                if(request.nextPageId==null){showDocument();toast("本页与文字修改已保存，已到末页，返回文稿");return;}
+                for(Models.Page page:document.active())if(page.id.equals(request.nextPageId)){openEditor(page);toast("上一页与文字修改已保存");return;}
                 showDocument();toast("当前保存版本的下一页不可用，请核对文稿");
             }catch(Exception e){editorSaves.fail(request);showRecovery("保存结果需核对；恢复记录保留，未自动跳页。");error(e);}
         });
     }
-    private void leaveEditor(){if(busy||editorSaves.hasPending()){toast("正在保存当前页，请等待结果后再返回");return;}if(cropping){buildEditor();return;}new AlertDialog.Builder(this).setTitle("离开编辑？").setMessage("已保存的原图和页面不变。当前预览可保存后离开；此前明确暂存的编辑副本仍保留，可在文稿“更多”中找回。").setPositiveButton("保存",(d,w)->saveEditor()).setNegativeButton("放弃本次修改",(d,w)->showDocument()).setNeutralButton("继续编辑",null).show();}
+    private void leaveEditor(){if(busy||editorSaves.hasPending()){toast("正在保存当前页，请等待结果后再返回");return;}if(cropping){buildEditor();return;}new AlertDialog.Builder(this).setTitle("离开编辑？").setMessage("当前页面和文字修改尚需保存。可保存后离开；放弃将丢弃本次修改。此前明确暂存的编辑副本仍保留，可在文稿“更多”中找回。").setPositiveButton("保存",(d,w)->saveEditor()).setNegativeButton("放弃本次修改",(d,w)->showDocument()).setNeutralButton("继续编辑",null).show();}
     private static EditRecoveryPolicy.Identity identity(String owner,Models.Page page){
         return new EditRecoveryPolicy.Identity(owner,page.id,page.file,page.sha256);
     }
@@ -1012,9 +1079,9 @@ public final class MainActivity extends Activity {
         TextView qualityLabel=text("图片清晰度",13,MUTED);panel.addView(qualityLabel);Spinner quality=new Spinner(this);quality.setContentDescription("PDF 图片清晰度");quality.setMinimumHeight(dp(48));quality.setAdapter(optionAdapter(new String[]{"标准 · 长边≤2800像素","省空间 · 长边≤1800像素","高清 · 长边≤4000像素"}));quality.setSelection(exportEdge==1800?1:exportEdge==4000?2:0);panel.addView(quality);
         panel.addView(text("文字提取与搜索",16,INK));
         CheckBox searchable=new CheckBox(this);searchable.setText("可搜索 PDF · 本地 OCR");searchable.setMinHeight(dp(48));panel.addView(searchable);
-        TextView languageLabel=text("识别语言 · 启用可搜索 PDF 后可选",13,MUTED);panel.addView(languageLabel);Spinner language=new Spinner(this);language.setContentDescription("PDF 文字识别语言");language.setMinimumHeight(dp(48));language.setAdapter(optionAdapter(new String[]{"英文 · 教材与讲义","中英混合"}));language.setSelection(getPreferences(0).getString("pdfOcrLanguage","eng").equals("chi_sim+eng")?1:0);language.setEnabled(false);language.setAlpha(.55f);panel.addView(language);
-        searchable.setOnCheckedChangeListener((v,checked)->{a4.setEnabled(!checked);language.setEnabled(checked);language.setAlpha(checked?1f:.55f);languageLabel.setText(checked?"识别语言":"识别语言 · 启用可搜索 PDF 后可选");if(checked)a4.setChecked(false);});
-        panel.addView(text("长边为上限，小图不放大。省空间档会缩小图像；高清档尽量保留裁切区域细节。原图始终保留。可搜索 PDF 按图片比例输出，文字可能有误，公式与手写以图像为准。",13,MUTED));
+        TextView languageLabel=text("重新识别语言 · 不使用已纠错的文字",13,MUTED);panel.addView(languageLabel);Spinner language=new Spinner(this);language.setContentDescription("PDF 文字识别语言");language.setMinimumHeight(dp(48));language.setAdapter(optionAdapter(new String[]{"英文 · 教材与讲义","中英混合"}));language.setSelection(getPreferences(0).getString("pdfOcrLanguage","eng").equals("chi_sim+eng")?1:0);language.setEnabled(false);language.setAlpha(.55f);panel.addView(language);
+        searchable.setOnCheckedChangeListener((v,checked)->{a4.setEnabled(!checked);language.setEnabled(checked);language.setAlpha(checked?1f:.55f);languageLabel.setText(checked?"重新识别语言 · 不使用已纠错的文字":"识别语言 · 启用可搜索 PDF 后可选");if(checked)a4.setChecked(false);});
+        panel.addView(text("长边为上限，小图不放大。省空间档会缩小图像；高清档尽量保留裁切区域细节。原图始终保留。可搜索 PDF 按图片比例输出并重新识别，不使用逐页纠错文字；公式与手写以图像为准。",13,MUTED));
         ScrollView options=new ScrollView(this);options.setFillViewport(false);options.addView(panel);
 
         AlertDialog exportDialog=new AlertDialog.Builder(this).setTitle("导出 PDF").setView(options).setPositiveButton("生成",(d,w)->{exportA4=a4.isChecked();exportEdge=new int[]{2800,1800,4000}[quality.getSelectedItemPosition()];try{Models.Document owner=document;Exporter.Progress report=(done,total)->runOnUiThread(()->{if(progress!=null)progress.setMessage("正在生成 PDF · "+done+" / "+total);});boolean ocr=searchable.isChecked();String selectedLanguage=language.getSelectedItemPosition()==0?"eng":"chi_sim+eng";if(ocr)getPreferences(0).edit().putString("pdfOcrLanguage",selectedLanguage).apply();runIO("正在生成 PDF…",()->{Models.Document copy=store.snapshotForExport(owner);requireReviewedCrops(copy);File pdf=ocr?OcrEngine.searchablePdf(store,copy,new File(getCacheDir(),"exports"),selectedLanguage,exportEdge,report):Exporter.pdf(store,copy,new File(getCacheDir(),"exports"),exportA4,exportEdge,report);verifyExportSnapshot(owner,copy);return new PdfExportResult(pdf,copy);},result->{if(document!=owner){toast("文稿已切换，生成文件仍保留在本地缓存");return;}PdfExportResult completed=(PdfExportResult)result;Models.Document copy=completed.document;pendingExport=completed.file;approvedExportSource=pendingExport;approvedExportDigest=null;approvedExportBytes=0;pendingKind="pdf";recentPdf=pendingExport;recentPdfRevision=pdfRevision(copy);new AlertDialog.Builder(this).setTitle("PDF 已生成").setMessage("生成时的文稿快照 · "+copy.active().size()+" 页 · "+String.format(Locale.CHINA,"%.1f MB",pendingExport.length()/1048576.0)).setPositiveButton("保存到文件",(a,b)->saveExport()).setNeutralButton("分享",(a,b)->shareExport()).setNegativeButton("稍后",null).show();},true);}catch(Exception e){error(e);}}).setNegativeButton("取消",null).create();exportDialog.show();exportDialog.getWindow().setBackgroundDrawable(rounded(SURFACE,16));
