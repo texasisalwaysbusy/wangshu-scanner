@@ -1,0 +1,109 @@
+{
+  "execute": false,
+  "network_performed_this_round": false,
+  "archives_and_assets": [
+    {
+      "name": "gradle-8.13-bin.zip",
+      "url": "https://services.gradle.org/distributions/gradle-8.13-bin.zip",
+      "bytes": 136983045,
+      "sha256": "20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78",
+      "sha1": "0b7130b5901a33c95a166c54c137a6eb79942aba",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:49:35.4011922+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "Tesseract4Android-4.9.0.tar.gz",
+      "url": "https://codeload.github.com/adaptech-cz/Tesseract4Android/tar.gz/refs/tags/4.9.0",
+      "bytes": 41337000,
+      "sha256": "4569f9093d641d13188ba2dd36a74396661eaa3f9e44637ff1cac9a36076a20e",
+      "sha1": "2176abde2c56eb192a283604ef6dd10b0c37a2d1",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:49:40.3311454+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "build-tools_r35_windows.zip",
+      "url": "https://dl.google.com/android/repository/build-tools_r35_windows.zip",
+      "bytes": 59878107,
+      "sha256": "5753c679a1b90bcf6fbc9945a2ce39dfb9e74f1df0831a1e1866ae5b594326f0",
+      "sha1": "af059bb67cf7786f45ee0db85e2d24985df1b4b6",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:52:05.1561305+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "android-ndk-r27c-windows.zip",
+      "url": "https://dl.google.com/android/repository/android-ndk-r27c-windows.zip",
+      "bytes": 781511249,
+      "sha256": "27e49f11e0cee5800983d8af8f4acd5bf09987aa6f790d4439dda9f3643d2494",
+      "sha1": "ac5f7762764b1f15341094e148ad4f847d050c38",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:52:35.2069138+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "cmake-3.22.1-windows.zip",
+      "url": "https://dl.google.com/android/repository/cmake-3.22.1-windows.zip",
+      "bytes": 16116742,
+      "sha256": "c9a9d568452a20cf27d703cb21ef9529dd67bda6be048c4d4b884acb3ac3a2b8",
+      "sha1": "292778f32a7d5183e1c49c7897b870653f2d2c1b",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:52:35.8760026+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "chi_sim.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/chi_sim.traineddata",
+      "bytes": 2469156,
+      "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+      "sha1": "3960dad0d17ece03bc8de3aa6a0cb86ca9a57984",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:52:36.3576024+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "eng.traineddata",
+      "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/eng.traineddata",
+      "bytes": 4113088,
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "sha1": "31abd495e0f719db4f524c447e9d855124a0b0d6",
+      "origin": "historical official-URL HTTP200 receipt plus current-byte recheck",
+      "receipt_date": "2026-11-02T00:52:36.5652652+00:00",
+      "downloaded_this_round": false
+    },
+    {
+      "name": "platform-36_r02.zip",
+      "url": "https://dl.google.com/android/repository/platform-36_r02.zip",
+      "bytes": 65878410,
+      "sha1": "2c1a80dd4d9f7d0e6dd336ec603d9b5c55a6f576",
+      "sha256": null,
+      "origin": "cached official Google repository XML, 2026-11-02; original archive not present/byte-verified",
+      "downloaded_this_round": false
+    }
+  ],
+  "jdk_distribution": {
+    "required": "JDK17 with compiler",
+    "official_selection_entry": "https://adoptium.net/temurin/releases/?version=17",
+    "exact_archive_url": null,
+    "sha256": null,
+    "status": "requires provenance decision; do not treat local runtime as a verified download"
+  },
+  "font": {
+    "name": "pdf.ttf",
+    "archive": "Tesseract4Android-4.9.0.tar.gz",
+    "member": "Tesseract4Android-4.9.0/tesseract4android/src/main/cpp/tesseract/src/tessdata/pdf.ttf",
+    "bytes": 572,
+    "sha256": "c7845420925a23d88ed830a63957b8af85a66a8daf8d9fc90e843673b2ef1a59",
+    "identity": "Tesseract GlyphLessFont; Google2020 Apache2.0 per pdf_ttf.h; parent independent read-only archive/header check",
+    "no_download_extraction_this_round": true
+  },
+  "not_a_downloader": true,
+  "google_repository_snapshot": {
+    "url": "https://dl.google.com/android/repository/repository2-3.xml",
+    "historical_date": "2026-11-02",
+    "sha256": "fb1bd2fcd70b6116519563f1ff96cc578381e4e29237ab05ec8920f0864a7955",
+    "not_current_metadata_verification": true
+  },
+  "SDK_license_text_sha256": "1f8729233617b193fd619213792ae16a41b95d2bbbf525dfe66998252ba68b16"
+}

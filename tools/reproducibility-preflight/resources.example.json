@@ -1,0 +1,11 @@
+{
+  "roots": {
+    "downloads": "./repo/.tools/downloads",
+    "sdk": "./inputs/sdk",
+    "gradle": "./repo/.tools/gradle-8.13",
+    "jdk": "./inputs/jdk17",
+    "vendor": "./repo/.tools/sources/Tesseract4Android-4.9.0",
+    "maven": "./inputs/gradle-cache/caches/modules-2/files-2.1"
+  },
+  "license_reviews": []
+}

@@ -1,6 +1,6 @@
 """Actual helpers and source safety, with fake Android and receipt persistence only."""
 from support import PROJECT, OUTPUT, JAVA
-import subprocess
+import subprocess,json,os
 from pathlib import Path
 root=PROJECT/'app/src/main/java/org/wangshu/scan'
 tests=Path(__file__).resolve().parent
@@ -15,5 +15,12 @@ if p.returncode:raise SystemExit(p.returncode)
 for name in ['IntakeHost','SaveExistingHost','Utf8Green','OcrAssetsHost']:
  p=subprocess.run([JAVA,'-cp',str(classes),'org.wangshu.scan.'+name,str(work/name)],capture_output=True,text=True,timeout=60)
  print(p.stdout,end='');print(p.stderr,end='')
- if p.returncode:raise SystemExit(p.returncode)
+ if p.returncode:
+  # The real helper failed closed on a provider without secure directory identity.
+  # Do not replace that provider or mock success; the positive IntakeHost stage is unavailable.
+  if name=='IntakeHost' and os.name=='nt' and '文件系统不提供可验证的身份' in p.stderr:
+   message='SKIP IntakeHost positive secure-directory path: actual production helper rejected unsupported Windows provider'
+   print(message);(work/'IntakeHost-platform-skip.json').write_text(json.dumps({'status':'SKIP','reason':message,'actual_exit':p.returncode,'positive_path_executed':False}),encoding='utf-8')
+   continue
+  raise SystemExit(p.returncode)
 print('HOST ONLY: real files/helpers; fake Android AtomicFile/Context/persistence; no JNI or real OCR assets.')

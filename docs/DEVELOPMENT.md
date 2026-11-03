@@ -1,52 +1,76 @@
-# Source development snapshot — 2026-11-02
+# Source preview integration — 2026-11-03
 
-This remains a development preview, not an accepted release. No installer is published.
+This is a local source-preview candidate. No APK is distributed here. No remote branch, commit, pull request or publication is part of this integration.
 
-## Changes since the initial public source snapshot
+## Provenance and change boundary
 
-- Import/ZIP restore: stricter archive/manifest checks, bounded receive/write progress and conservative capacity checks. Received data and failure fragments are retained; importing the same archive still creates another independent document and consumes more storage.
-- Recovery: inspect/export received ZIP fragments without representing them as complete ZIP backups; additional closed camera-batch recovery and receipt checks. Existing unresolved save requests must not be silently replaced.
-- Crop safety: smaller valid crops are permitted; some low-contrast shadows now fall back to the full image. Pages must be explicitly reviewed before PDF export. **A shadow equal in brightness to the background can still produce a crop that cuts off the page.** Synthetic checks do not establish real-photo accuracy.
-- OCR/PDF identity: length-framed revision keys avoid ambiguous concatenation; null recognition does not overwrite the prior text. Existing OCR text can be retained but marked stale after image edits.
-- Editor: restore edit state before rebuilding controls; explicit on-disk edit checkpoints with baseline checks and separately confirmed metadata export. These are not autosave or complete backups.
-- OCR preparation: pinned asset size/SHA-256 checks, unique retained preparation files, interruptible process-local serialization, and cleanup of failed native initialization ownership.
-- Camera batch: queued lock acquisition is interruptible. Heavy work remains inside the batch lock; this is **not** proof of an Android ANR fix.
+Upstream public baseline: commit `86f37191660e657790971c3211aa1a158ab8834d`, tree `6a9ec16d649f3f0f87f457726f8498dbaff64d7b`, 85 files. File contents were verified against Git blob IDs and the complete tree was recomputed. Public-only license, notices, development material, host tests and runner are retained, with explicit harness/document updates rather than replacement by a private workspace tree.
 
-## Reproducible host checks
+The imported production files are byte-identical to the dependency-equipped vc6 source: MainActivity, Store, EditDraftStore, manifest, application Gradle configuration, and six new classes (EditorSaveFlow, EditRecoveryPolicy, EditRecoveryState, EditRecoveryCatalog, RecoverySourceGate, PdfPreviewActivity). The WED1/WED2 inspector is also imported. No production behavior was changed for this integration.
 
-From the repository root, with an existing Python 3.10+ and a JDK with the compiler module available:
+The original public import/restore checks, crop review, OCR/PDF revision framing, invalid-asset rejection, null OCR preservation and interruptible batch-lock behavior remain. Similar-brightness shadows and missing corners can still produce an incorrect crop. Manual review remains required; this is not a new automatic-crop algorithm.
+
+## Editor and recovery behavior
+
+A save-and-next request binds the document/page, baseline, editor session and operation token, freezes an edit copy and blocks repeat submission. Persistence must return successfully, and the durable document version/order plus current UI identity are rechecked before navigation. The last page returns to the document instead of wrapping. A completed writer does not become an unsaved operation merely because its Activity was paused or destroyed.
+
+An independent recovery record is retained before the save transaction. A conflict is kept separate from the current saved page; old edited content is not automatically applied to a new baseline. Saved-state restoration may preserve raw state or a receipt reference. A restored reference remains unverified until background reading validates it. A record's submitted flag is not proof of successful saving.
+
+Recovery labels use the **current** title and page number, not historical metadata. The timestamp is first retention time; deduplication does not refresh it. UUIDs remain identity fields. Clicking a record still rechecks owner/token/digest, document version, page identity and the real original file, in a worker. A callback ticket checks current document/page/session and observation cycle before publication. Source identity is rechecked around document reading under the app's immutable-original model; this does not make verification atomic against arbitrary external same-UID modifications.
+
+The independent recovery directory has per-document limits of 256 entries, 64 MiB total ordinary-file bytes and 4 MiB per record. Damaged/unknown entries count; unsupported or unreadable inventory is not reported as zero. Usage is a snapshot, not a reservation. Full storage may still permit deduplication of an identical retained record, but no quota bypass or automatic deletion is implemented. Legacy explicit checkpoints remain separately limited to 16 entries of at most 4 MiB each.
+
+Ordinary ZIP backups omit both recovery areas. A recovery export is only one record's parameter copy, possibly including old OCR strings; it contains neither originals nor a whole document or other records, has no automatic import, and frees no quota. Copy/source verification is not external-provider readback verification. At capacity, the user must separately decide how to preserve and handle records; this source preview adds no deletion/archive/export system.
+
+`python3 tools/inspect_edit_draft.py FILE` validates an exported WED1/WED2 record offline and hides stored page/OCR strings by default. `--json` explicitly reveals private strings. The tool does not upload, import, repair or modify the file.
+
+## Host validation
+
+Requirements: an existing Python 3.10+ and JDK17+ with the compiler module. No network/bootstrap/install is performed:
 
 ```sh
-python3 tools/test_host.py
+python3 -B tools/test_host.py
 ```
 
-Set `JAVA` to an existing Java executable if needed. The runner does not download or install anything. It retains sources, synthetic fixtures and logs in a new `build/host-tests-*` directory. The suite has been exercised on Linux with Python 3.12 and host JDK 21; filesystem/symlink behavior on other platforms remains unverified. Host compilation is not Android API compatibility verification.
+Set `JAVA` to an existing Java executable when needed. `SCANNER_HOST_OUTPUT` can select a new retained output directory; otherwise a unique `build/host-tests-*` directory is used. Scripts retain generated sources, logs and synthetic fixtures rather than cleaning them. UTF-8 is explicit in the runner environment.
 
-The public suite compiles actual pure Java helpers and extracts selected production methods into explicitly synthetic Android/model/JSON/decoder/persistence test seams. It covers geometry, detector counterexamples, OCR and PDF revision identity, null OCR preservation, image/ZIP import, storage-progress faults, editor restoration/checkpoint guards, checkpoint export through save receipts, lock cancellation, received-fragment handling and original core regressions. It also rejects lone-surrogate checkpoint text before writing. The PDF-revision fixture includes the current `cropReview` field and verifies that changing it invalidates a cached revision.
+| Group | What actually executes | What it does not establish |
+| --- | --- | --- |
+| Coordinator | Production EditorSaveFlow; boundary, duplicate/callback and real-thread cases | Injected Writer is not Android Store/AtomicFile |
+| Recovery | Production coordinator, journal codec/filesystem, identity policy and saved-state envelope | Host persisted-order fixture is not Android disk-fault or lifecycle execution |
+| Catalog/quota | Production label/status policy and real host journal/usage files | Device full-disk/quota behavior |
+| Source gate | Production source hashing, file-change checks and callback-ticket policy on real synthetic files | Android UI wiring or atomic defense against arbitrary external writers |
+| Draft UI seam | Exact current four-argument restoreDraft, openEditor overloads, strictCheckpointPage and identity methods; real EditRecoveryPolicy | Models, JSON and controls are synthetic, not Android org.json or rendered UI |
+| PDF preview contract | Exact resolver/sizing statements executed on JVM; static ownership/manifest/revision assertions | Android PdfRenderer behavior, actual page rendering, text search or selection |
+| Earlier public host suite | Pure Java helpers, actual filesystem helpers and selected production methods | Explicit model/decoder/persistence/Android seams remain substitutes |
 
-The OCR helper check here uses deliberately invalid synthetic assets to test rejection/retention/cancellation. It does **not** exercise valid pinned model preparation or native OCR. Those omitted assets are not silently fetched. The suite never labels an unavailable Android/native/real-asset stage as passed.
+The old draft harness's obsolete call signature and model fields are updated to the production interface; the production policy is compiled rather than duplicated. PDF revision extraction stops before the newly added preview method. No passing replacement for production logic is supplied.
 
-## Android build evidence and its limits
+Windows provider limits must remain visible: the original secure-directory IntakeHost positive path can fail closed because the provider does not supply the required verifiable identity. That case is reported as SKIP after the actual production rejection; other helper tests still run. Symlink fixture creation may be unavailable; those branches report SKIP, and no security or privilege setting is changed. A green available-stage result with skips is not full Linux/Android filesystem coverage. Initial failures remain part of local integration evidence.
 
-An independent audit of a dependency-equipped source snapshot matched all **48 public `app/src/main` files, including 30 Java sources**, against the source used for a completed Android build. The other three main-tree files were the OCR binary assets intentionally omitted here. The audit reported successful application/test APK generation, Android Java/resource processing, four-ABI native compilation and lint execution. The application APK SHA-256 was:
+OCR host checks use invalid synthetic assets and synthetic recognition seams. Real pinned model preparation, native OCR accuracy and JNI are not exercised by the host suite.
 
-```
-6bda318d4a4268e088d9b923dcb780863c25e6beeb1eadcf3f7d5f8d92814e9d
-```
+## Historical Android and runtime evidence
 
-Lint completed with **0 errors and 18 warnings**: SetTextI18n (9), DrawAllocation (4), UsableSpace (2), DataExtractionRules (1), ObsoleteSdkInt (1), and AccessibilityWindowStateChangedEvent (1). AndroidTest compilation also reported five annotation-enum warnings. A successful build is not a warning-free build.
+The full dependency-equipped vc6 source completed offline Android Java/resources/lint, four-ABI native packaging and debug application/test-APK compilation. That is historical evidence for the matched production source; this source-only integration does not repeat or claim a fresh-clone Android build. Lint success does not mean warning-free. Test-APK compilation does not mean instrumentation execution.
 
-This hash identifies build evidence, **not an offered download, release or safety certification**. That build used separately prepared SDK/NDK, upstream source and assets. It does not demonstrate that a bare clone of this intentionally source-only repository builds reproducibly. The existing OCR build configuration still assumes the original relative `.tools` layout. Full dependency/bootstrap reproducibility remains open.
+| Version | Limited actual runtime evidence | Boundary |
+| --- | --- | --- |
+| vc2 / 0.2.0 PDF preview candidate | User-run API36/ARM64/4KiB: synthetic A/B/C import, crop confirmation/save, English/Chinese OCR flow, ordinary/searchable PDF, in-app preview, external reading/search/copy, reopening data | OCR words/formulas unreliable; not vc6 phone acceptance |
+| vc4 | Earlier bounded synthetic emulator save/next and recovery checks | Not automatically inherited as tests of every later APK |
+| vc6 / 0.2.4-preview-recovery-verify | API36/x86_64/4KiB: one preserve-data upgrade from vc4, old synthetic files retained, readable records/normal quota, conflict and saved replay refusal, three-page save/next/last, cancel-back, actual process recreation of Activity gray draft, ordinary PDF preview pages 1–3 and return | Not a phone test or the independent record positive-load branch |
 
-Android runtime acceptance is **not established by this snapshot**: Camera2, native OCR/JNI, API26/current-device behavior, actual `org.json`, SAF destinations, lifecycle/process death, backup/transfer, real-photo accuracy and hardware power-loss behavior require separate evidence. Do not interpret an in-progress or historical device test as a pass of this snapshot.
+vc6 identity for distinguishing historical evidence: application SHA-256 `de8bc786c6366001e33d246c5f1251ffb05c9b2a1c27066237adeb86f03418b3`. This identifies an internal debug build; it is not a download or release. Original vc2 phone observations refer to the earlier build beginning `8daa7bd7`, not that vc6 hash.
 
-## Data safety and privacy limitations
+A later bounded natural-sample observation inspected one existing synthetic document's four independent records: three already saved and one conflicting. No eligible baseline record existed, so none was selected. **Positive independent-record manual load remains device NOT_RUN.** Host Gate positive cases and saved-Activity draft restoration cannot substitute for it. Source corruption/replacement and callback mutation were not injected on a device. Full quota/disk faults, API26, ARM vc6, 16 KiB runtime and full instrumentation remain unverified.
 
-- The manifest requests CAMERA, not INTERNET, and disables ordinary app backup; configured extraction rules exclude app data. System document providers and share targets can still be network services. A lint warning about missing legacy `fullBackupContent` is not evidence of a leak; actual platform backup/transfer behavior still needs testing.
-- Checkpoints contain both old and edited Page JSON, potentially including historical OCR text and local image references. They contain **no images**. Ordinary ZIP exports omit them; uninstall/clear-data can lose them. At most 16 retained entries per document, each at most 4 MiB; no automatic cleanup or conflict merge is implemented.
-- `tools/inspect_edit_draft.py FILE` validates an exported `.bin` record offline and hides OCR/parameter contents by default. `--json` deliberately prints the private stored strings. It does not upload, import, repair or modify the file.
-- Received-fragment inspection requires a secure directory handle and verifiable file identity. Unsupported filesystem providers fail closed; Android provider behavior remains unverified. A fragment export is not complete recovery or resumable import.
-- Existing empty/damaged OCR cache files are not replaced automatically. Four retained failed preparation fragments per asset block further preparation until a separate repair decision. Unresolved save receipts can similarly block new saves. No cleanup/repair UI is supplied.
-- File force/readback is not directory fsync or a power-loss guarantee. Malicious same-UID path replacement and the interval between asset verification and native reopen are not fully defended. Single blocking calls and Store monitor waits are not forcibly timed out.
+## Fresh-clone and release gaps
 
-Never put private scans, OCR content, exported checkpoint files, absolute local paths, credentials or logs containing them into public issues or this repository.
+This payload deliberately omits APK/AAB/AAR, OCR traineddata, pdf.ttf, SDK/NDK/CMake/Gradle binaries and caches, upstream vendor source, signing configuration, local.properties, private runtime evidence, scans and old image fixtures. It also does not contain the complete Android instrumentation source set; a runner name in Gradle does not supply that runner or its fixtures. The default fixture-dependent suite is not represented as runnable.
+
+The build configuration retains the original relative `../../.tools/sources/Tesseract4Android-4.9.0/tesseract4android` layout. The preparation script also assumes that enclosing layout; do not execute it blindly from an arbitrary clone directory. No Gradle wrapper is included. Build prerequisites remain Gradle8.13, AGP8.13.2, JDK17, compile/target36, min26, build-tools35.0.0, NDK27.2.12479018, CMake3.22.1, ExifInterface1.4.2 and Annotation1.3.0 plus declared transitive dependencies. Consult the pinned source/asset hashes and patch guards in `docs/OCR-DEPENDENCIES.json`. This integration does not download them or change versions.
+
+CAMERA is requested, INTERNET is not; normal backup is disabled and extraction exclusions are present. System document providers and sharing targets can still use networks. Actual platform transfer, low storage, interrupted native calls, heavy batches and power loss remain bounded or untested. File force/readback is not directory fsync or a power-loss guarantee.
+
+Apache-2.0 covers original code. Existing third-party notices and patch attribution remain. Font/model/native dependencies each need their applicable terms; this work does not certify all binary distribution obligations. Formal beta naming, release channel, release signing and upgrade policy remain separate decisions. Never solve a signing conflict by uninstalling before preserving and checking data.
+

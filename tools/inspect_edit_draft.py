@@ -13,6 +13,7 @@ import struct
 
 MAX_BYTES = 4 * 1024 * 1024
 MAGIC = 0x57454431
+MAGIC_V2 = 0x57454432
 
 
 def decode(data):
@@ -22,27 +23,41 @@ def decode(data):
     if hashlib.sha256(payload).digest() != expected:
         raise ValueError("checkpoint checksum mismatch; input is not modified")
     magic, created = struct.unpack_from(">Iq", payload)
-    if magic != MAGIC or created < 0:
+    if magic not in (MAGIC, MAGIC_V2) or created < 0:
         raise ValueError("unsupported checkpoint version or timestamp")
     offset = 12
-    fields = []
-    for _ in range(3):
+    def text():
+        nonlocal offset
         if offset + 4 > len(payload):
             raise ValueError("truncated field length")
         length = struct.unpack_from(">i", payload, offset)[0]
         offset += 4
         if length < 0 or offset + length > len(payload):
             raise ValueError("invalid field length")
-        fields.append(payload[offset:offset + length].decode("utf-8", errors="strict"))
+        value = payload[offset:offset + length].decode("utf-8", errors="strict")
         offset += length
-    if offset != len(payload) or not fields[1] or not fields[2]:
+        return value
+    document = text()
+    document_version = text() if magic == MAGIC_V2 else ""
+    submitted = False
+    if magic == MAGIC_V2:
+        if offset >= len(payload) or payload[offset] not in (0, 1):
+            raise ValueError("invalid submitted flag")
+        submitted = bool(payload[offset])
+        offset += 1
+    baseline, edited = text(), text()
+    if offset != len(payload) or not baseline or not edited:
         raise ValueError("extra data or empty checkpoint fields")
     import re
-    if not re.fullmatch(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", fields[0]):
+    if not re.fullmatch(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", document):
         raise ValueError("invalid document identifier")
-    return {"version": 1, "created_epoch_ms": created, "document": fields[0],
-            "baseline_json": fields[1], "edited_json": fields[2],
+    if document_version and not re.fullmatch(r"[a-f0-9]{64}", document_version):
+        raise ValueError("invalid baseline document version")
+    return {"version": 2 if magic == MAGIC_V2 else 1, "created_epoch_ms": created, "document": document,
+            "baseline_document_version": document_version, "save_submitted": submitted,
+            "baseline_json": baseline, "edited_json": edited,
             "file_sha256": hashlib.sha256(data).hexdigest()}
+
 
 
 def main():

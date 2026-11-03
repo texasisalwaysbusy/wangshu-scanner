@@ -6,7 +6,7 @@ import hashlib, os, subprocess, sys
 project=PROJECT
 source=project/'app/src/main/java/org/wangshu/scan/MainActivity.java'
 s=source.read_text(encoding='utf-8')
-method=s[s.index('    private String pdfRevision('):s.index('    private void reusePdf(',s.index('    private String pdfRevision('))]
+method=s[s.index('    private String pdfRevision('):s.index('    private void previewPdf(',s.index('    private String pdfRevision('))]
 java=r'''
 import java.util.*;
 public class PdfRevisionHost {
