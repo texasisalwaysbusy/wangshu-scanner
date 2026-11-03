@@ -41,7 +41,7 @@ def run(name,command):
  print(name, 'PASS' if passed else 'FAIL',flush=True)
  if not passed:print(output,flush=True)
  return passed
-scripts=['geometry_small_crop_host','page_detector_shadow_host','ocr_key_host','ocr_null_host','ocr_review','editor_payload','editor_save_budget','pdf_revision_host','jpeg_import_actual_host','zip_verified_restore_host','storage_progress','draft_ui','edit_draft_store','edit_draft_gates','edit_draft_save','capture_lock','helper_files']
+scripts=['geometry_small_crop_host','page_detector_shadow_host','ocr_key_host','ocr_null_host','ocr_review','editor_payload','editor_save_budget','pdf_revision_host','jpeg_import_actual_host','zip_verified_restore_host','storage_progress','draft_ui','edit_draft_store','edit_draft_gates','edit_draft_save','capture_lock','helper_files','text_export','text_export_ui']
 for name in scripts:run(name,[sys.executable,str(ROOT/'tests/host'/f'{name}.py')])
 for group in ['coordinator','recovery','catalog','source']:run('production_'+group,[sys.executable,str(ROOT/'tests/host/production_recovery.py'),group])
 run('pdf_preview_contract',[sys.executable,str(ROOT/'tools/test_pdf_preview_contract.py')])

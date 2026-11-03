@@ -91,15 +91,16 @@ final class DocumentMutations {
         synchronized(Store.FILE_LOCK){
             Store.requireCertain(document);
             if(!document.pages.contains(page))throw new IOException("页面已变化，请重新打开文稿");
-            String oldText=page.ocrText,oldKey=page.ocrKey,oldLanguage=page.ocrLanguage;
+            String oldText=page.ocrText,oldKey=page.ocrKey,oldLanguage=page.ocrLanguage,oldOrigin=page.ocrOrigin;
             String nextText=text==null?"":text,nextKey=key==null?"":key,nextLanguage=language==null?"":language;
-            page.ocrText=nextText;page.ocrKey=nextKey;page.ocrLanguage=nextLanguage;
+            page.ocrText=nextText;page.ocrKey=nextKey;page.ocrLanguage=nextLanguage;page.ocrOrigin="machine";
             return save(document,writer,()->{
                 if(!document.pages.contains(page))return false;
                 if(Objects.equals(page.ocrText,nextText))page.ocrText=oldText;
                 if(Objects.equals(page.ocrKey,nextKey))page.ocrKey=oldKey;
                 if(Objects.equals(page.ocrLanguage,nextLanguage))page.ocrLanguage=oldLanguage;
-                return Objects.equals(page.ocrText,oldText)&&Objects.equals(page.ocrKey,oldKey)&&Objects.equals(page.ocrLanguage,oldLanguage);
+                if(Objects.equals(page.ocrOrigin,"machine"))page.ocrOrigin=oldOrigin;
+                return Objects.equals(page.ocrText,oldText)&&Objects.equals(page.ocrKey,oldKey)&&Objects.equals(page.ocrLanguage,oldLanguage)&&Objects.equals(page.ocrOrigin,oldOrigin);
             });
         }
     }

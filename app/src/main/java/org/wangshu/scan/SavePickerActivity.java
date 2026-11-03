@@ -37,6 +37,7 @@ public final class SavePickerActivity extends Activity {
     private void launchIfReady(){
         if(resultSent||pickerStarted||prepared==null||!resumed||saved||isFinishing()||isDestroyed())return;
         pickerStarted=true;Intent picker=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(prepared.mime).putExtra(Intent.EXTRA_TITLE,prepared.title);
+        if("text/plain".equals(prepared.mime))picker.putExtra(Intent.EXTRA_LOCAL_ONLY,true);
         try{startActivityForResult(picker,PICKER_CODE);}catch(RuntimeException e){finishResult(RESULT_CANCELED,null,0,true);}
     }
     @Override protected void onActivityResult(int request,int result,Intent data){

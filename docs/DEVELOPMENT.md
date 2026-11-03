@@ -42,6 +42,8 @@ Set `JAVA` to an existing Java executable when needed. `SCANNER_HOST_OUTPUT` can
 | Source gate | Production source hashing, file-change checks and callback-ticket policy on real synthetic files | Android UI wiring or atomic defense against arbitrary external writers |
 | Draft UI seam | Exact current four-argument restoreDraft, openEditor overloads, strictCheckpointPage and identity methods; real EditRecoveryPolicy | Models, JSON and controls are synthetic, not Android org.json or rendered UI |
 | PDF preview contract | Exact resolver/sizing statements executed on JVM; static ownership/manifest/revision assertions | Android PdfRenderer behavior, actual page rendering, text search or selection |
+| UTF-8 text core | Production Models/provenance mutation, formatter, SaveJobStore and text target protocol on real synthetic files | In-memory receipt persistence and host JSON/Android seams; not Android AtomicFile/SAF |
+| Text UI callbacks | Extracted current source/confirmation/save-result/recovery methods, real formatter/receipts/files | UI, Store, scheduler and descriptor bridge are synthetic; bridge is structurally checked only |
 | Earlier public host suite | Pure Java helpers, actual filesystem helpers and selected production methods | Explicit model/decoder/persistence/Android seams remain substitutes |
 
 The old draft harness's obsolete call signature and model fields are updated to the production interface; the production policy is compiled rather than duplicated. PDF revision extraction stops before the newly added preview method. No passing replacement for production logic is supplied.

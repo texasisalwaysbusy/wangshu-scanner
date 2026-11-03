@@ -15,7 +15,7 @@ public final class OcrReviewHost {
     final android.content.ClipboardManager clipboard=new android.content.ClipboardManager();
     static final String CLIPBOARD_SERVICE="clipboard";
     boolean alive(){return living;}Object getSystemService(String key){return clipboard;}
-    void toast(String message){}void openEditor(Models.Page page){opened=page;}
+    void toast(String message){}void textExportOptions(){}void openEditor(Models.Page page){opened=page;}
     TextView text(String value,int size,int color){TextView view=new TextView();view.setText(value);return view;}
     Button button(String label,Runnable action){lastButton=new Button(action);return lastButton;}
     /* PRODUCTION_METHODS */
@@ -146,12 +146,12 @@ class Models {
         ArrayList<Page> active(){ArrayList<Page> out=new ArrayList<>();for(Page page:pages)if(!page.removed)out.add(page);return out;}
     }
     static class Page {
-        String id="page-a",sha256="a".repeat(64),mode="COLOR",ocrText="",ocrKey="",ocrLanguage="chi_sim+eng";
+        String id="page-a",sha256="a".repeat(64),mode="COLOR",ocrText="",ocrKey="",ocrLanguage="chi_sim+eng",ocrOrigin="";
         double[] quad={0,0,1,0,1,1,0,1};int rotation,brightness,bias=8;boolean shadows,removed,reviewed=true;
         boolean cropConfirmed(){return reviewed;}
-        Page copy(){Page p=new Page();p.id=id;p.sha256=sha256;p.mode=mode;p.ocrText=ocrText;p.ocrKey=ocrKey;p.ocrLanguage=ocrLanguage;p.quad=quad.clone();p.rotation=rotation;p.brightness=brightness;p.bias=bias;p.shadows=shadows;p.removed=removed;p.reviewed=reviewed;return p;}
+        Page copy(){Page p=new Page();p.id=id;p.sha256=sha256;p.mode=mode;p.ocrText=ocrText;p.ocrKey=ocrKey;p.ocrLanguage=ocrLanguage;p.ocrOrigin=ocrOrigin;p.quad=quad.clone();p.rotation=rotation;p.brightness=brightness;p.bias=bias;p.shadows=shadows;p.removed=removed;p.reviewed=reviewed;return p;}
         // Synthetic framing; does not replace/test Android org.json serialization.
-        String encoded(){StringBuilder out=new StringBuilder();for(String s:List.of(id,ocrText,ocrKey,ocrLanguage))out.append(s.length()).append(':').append(s);return out.toString();}
+        String encoded(){StringBuilder out=new StringBuilder();for(String s:List.of(id,ocrText,ocrKey,ocrLanguage,ocrOrigin))out.append(s.length()).append(':').append(s);return out.toString();}
     }
 }
 class OcrEngine { /* PRODUCTION_KEY */ }

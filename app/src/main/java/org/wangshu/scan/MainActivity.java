@@ -71,6 +71,8 @@ public final class MainActivity extends Activity {
     private String approvedExportDigest;
     private long approvedExportBytes;
     private final HashSet<String> approvedSaveTokens=new HashSet<>();
+    private PreparedText preparedText;
+    private final HashMap<String,PreparedText> textSavePermits=new HashMap<>();
     private String pendingKind="pdf";
     private boolean exportA4=true;
     private int exportEdge=2800;
@@ -317,6 +319,7 @@ public final class MainActivity extends Activity {
         // Global inbox is not tied to this document: keep a discoverable neutral
         // entry even before/after a delayed receipt arrives; user chooses the action.
         list.addView(button("逐页核对 / 纠错识别文字",this::showOcrReviewPages));
+        list.addView(button("另存文字副本 · UTF-8",this::textExportOptions));
         list.addView(button("查找生命周期草稿快照",this::recoverLifecycleDrafts));
         inboxNotice=button("拍照收件箱 · 检查待核对文件",this::cameraInbox);list.addView(inboxNotice);refreshInboxNotice();
         if(pages.isEmpty())list.addView(text("这份文稿还没有页面\n\n拍照，或一次导入多张图片。之后可以裁切、增强、调整顺序。",18,MUTED));
@@ -339,8 +342,9 @@ public final class MainActivity extends Activity {
             SaveJobStore.Job job=(SaveJobStore.Job)value;
             if(job==null||job.phase==SaveJobStore.DONE||job.phase==SaveJobStore.CANCELLED){toast("没有待处理的保存请求");return;}
             String info="文件："+job.title.replaceAll("[\\p{Cntrl}]","?")+"\n大小："+job.bytes+" 字节\n源指纹："+job.sha.substring(0,12)+"\n\n导出源位于应用私有存储或缓存；缓存可能被系统清理。不会自动改写以前选择的位置。";
+            if((job.phase==SaveJobStore.WRITING||job.phase==SaveJobStore.NEEDS_RESELECT)&&"text/plain".equals(job.mime)){new AlertDialog.Builder(this).setTitle("文字保存尚未确认").setMessage(info+"\n\n旧目标可能不完整。可核对保留的文字快照后，主动选择一个新文件；不会重写旧目标。").setPositiveButton("文字快照另存新文件",(d,w)->recoverTextSave(job.token)).setNeutralButton("结束旧文字请求",(d,w)->endTextSave(job.token)).setNegativeButton("保留记录",null).show();return;}
             if(job.phase==SaveJobStore.WRITING||job.phase==SaveJobStore.NEEDS_RESELECT){new AlertDialog.Builder(this).setTitle("保存结果尚未确认").setMessage(info+"\n\n目标可能已写入或只写入一部分。旧记录无法安全自动结束，新保存暂时受阻；请保留应用数据并等待进一步核对。").setPositiveButton("知道了",null).show();return;}
-            new AlertDialog.Builder(this).setTitle("结束未完成的保存请求？").setMessage(info+"\n\n可结束此请求以允许新保存。源文件不删除；曾选目标可能已创建空文件，迟到结果不会自动写入。确认后如果状态已变化，将重新核对。").setPositiveButton("结束此请求",(d,w)->runIO("正在结束保存请求…",()->{SaveJobStore jobs=saveJobs();jobs.cancel(job.token);return jobs.read();},after->{SaveJobStore.Job end=(SaveJobStore.Job)after;if(end!=null&&job.token.equals(end.token)&&end.phase==SaveJobStore.CANCELLED){if(job.token.equals(activeSaveToken))activeSaveToken=null;handledSaveToken=job.token;toast("已结束此请求；源文件未删除，可重新发起保存");}else toast("保存状态已变化或结果未知；记录保留，请再次核对");})).setNegativeButton("保留请求",null).show();
+            new AlertDialog.Builder(this).setTitle("结束未完成的保存请求？").setMessage(info+"\n\n可结束此请求以允许新保存。源文件不删除；曾选目标可能已创建空文件，迟到结果不会自动写入。确认后如果状态已变化，将重新核对。").setPositiveButton("结束此请求",(d,w)->runIO("正在结束保存请求…",()->{SaveJobStore jobs=saveJobs();jobs.cancel(job.token);return jobs.read();},after->{SaveJobStore.Job end=(SaveJobStore.Job)after;if(end!=null&&job.token.equals(end.token)&&end.phase==SaveJobStore.CANCELLED){if(job.token.equals(activeSaveToken))activeSaveToken=null;handledSaveToken=job.token;textSavePermits.remove(job.token);approvedSaveTokens.remove(job.token);toast("已结束此请求；源文件未删除，可重新发起保存");}else toast("保存状态已变化或结果未知；记录保留，请再次核对");})).setNegativeButton("保留请求",null).show();
         });
     }
     private void inspectRestoreIntake(){
@@ -417,14 +421,14 @@ public final class MainActivity extends Activity {
     }
     private static String ocrReviewStatus(Models.Page page,Models.Page saved){
         String state=saved!=null&&Objects.equals(page.ocrText,saved.ocrText)?"文字与已保存版本一致":"文字已修改 · 尚未保存";
-        return state+"\n"+ocrPageStatus(page);
+        return state+" · "+(page.ocrOrigin.equals("manual")?"人工编辑过（不代表已校对无误）":page.ocrOrigin.equals("machine")?"自动识别":"来源未记录")+"\n"+ocrPageStatus(page);
     }
     /** Text callbacks belong to this exact draft and rendered editor, even for the same page ID. */
     private boolean updateOcrDraft(Object session,Models.Document owner,Models.Page page,int viewGeneration,String value){
         if(value==null||session==null||owner==null||page==null||document!=owner||draft!=page||editorSession!=session
                 ||generation!=viewGeneration||screen!=2||cropping||busy||!alive()||stateSaved||!resumed
                 ||owner.manifestUncertain||recovery!=null||editorSaves.hasPending())return false;
-        page.ocrText=value; // Never refresh ocrKey/language: stale OCR stays stale after correction.
+        if(!Objects.equals(page.ocrText,value))page.ocrOrigin="manual";page.ocrText=value; // Never refresh ocrKey/language: stale OCR stays stale after correction.
         return true;
     }
     private void addOcrEditor(LinearLayout controls){
@@ -449,6 +453,7 @@ public final class MainActivity extends Activity {
             }
         });
         controls.addView(input,new LinearLayout.LayoutParams(-1,-2));
+        controls.addView(button("另存文字副本 · 选择已保存或草稿",this::textExportOptions));
         controls.addView(button("复制本页文字（含当前修改）",()->{
             if(document!=owner||draft!=page||editorSession!=session||generation!=viewGeneration||screen!=2)return;
             ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("本页文字",page.ocrText));
@@ -481,6 +486,89 @@ public final class MainActivity extends Activity {
         throw new IOException("当前页面不可用；快照保留，未载入");
     }
     private static final class RecoveredLifecycle {final EditDraftStore.Draft draft;final Models.Document document;RecoveredLifecycle(EditDraftStore.Draft draft,Models.Document document){this.draft=draft;this.document=document;}}
+    private static final class PreparedText {
+        final TextExport.Request request;TextExport.Context context;final File file;final String digest,title,description;final long bytes;
+        PreparedText(TextExport.Request request,File file,String digest,long bytes,String title,String description){this.request=request;this.file=file;this.digest=digest;this.bytes=bytes;this.title=title;this.description=description;}
+        PreparedText historical(){return new PreparedText(null,file,digest,bytes,title,"先前生成的文字快照（未重新核对当前文稿）");}
+    }
+    private boolean textContextCurrent(PreparedText text){return !cropping&&text!=null&&(text.context==null||text.context.current(document,editorSession,draft,screen))&&(text.request==null||text.request.current(document,editorSession,draft,screen));}
+    private void requireTextDiskCurrent(PreparedText text)throws Exception {
+        if(text==null)throw new IOException("文字副本缺少来源凭据，请重新选择来源");
+        if(text.request!=null){synchronized(Store.FILE_LOCK){store.assertCurrentReadable(text.request.owner);if(!text.request.version.equals(text.request.owner.savedSnapshot)||!text.request.order.equals(TextExport.order(text.request.owner)))throw new IOException("文稿或页序已变化，请重新生成文字快照");}}
+    }
+    private void textExportOptions(){
+        if(document==null||!(screen==1||screen==2)||cropping||busy||recovery!=null||editorSaves.hasPending()||document.manifestUncertain||!resumed||stateSaved){toast("请先完成当前保存或恢复；草稿保留");return;}
+        if(activeSaveToken!=null){toast("已有保存请求尚未结束，请先取消或处理保存记录");return;}
+        Models.Document owner=document;Object session=editorSession;Models.Page page=draft;int view=generation,fromScreen=screen;
+        ArrayList<String> labels=new ArrayList<>();ArrayList<TextExport.Source> sources=new ArrayList<>();
+        labels.add("整本文稿 · 已保存文字");sources.add(TextExport.Source.SAVED_DOCUMENT);
+        if(screen==2){labels.add("仅当前页 · 已保存文字");sources.add(TextExport.Source.SAVED_PAGE);labels.add("仅当前页 · 当前草稿副本（未保存）");sources.add(TextExport.Source.DRAFT_PAGE);}
+        PreparedText previous=preparedText;boolean hasPrevious=previous!=null&&previous.file.isFile();if(hasPrevious)labels.add("上次生成的文字快照 · "+previous.title);
+        labels.add("查找上次文字保存记录（缓存可能被清理）");
+        new AlertDialog.Builder(this).setTitle("选择文字来源 · 导出不等于保存页面").setItems(labels.toArray(new String[0]),(dialog,index)->{
+            if(document!=owner||screen!=fromScreen||generation!=view||editorSession!=session||draft!=page||busy||recovery!=null||!resumed||stateSaved){toast("页面状态已变化，请重新选择文字来源");return;}
+            if(index<sources.size()){createTextExport(sources.get(index));return;}
+            if(hasPrevious&&index==sources.size()){if(!previous.file.isFile()){toast("上次缓存已不可用，请重新导出");return;}preparedText=previous.historical();offerTextDestination(preparedText);return;}
+            recoverTextSave(null);
+        }).setNegativeButton("取消",null).show();
+    }
+    private void createTextExport(TextExport.Source source){
+        final TextExport.Request request;
+        try{request=new TextExport.Request(document,editorSession,draft,originalPage,originalPageBaseline,source,screen);}catch(Exception problem){error(problem);return;}
+        runIO("正在生成带页码的 UTF-8 文字快照…",()->{
+            Models.Document saved;TextExport.Snapshot snapshot;
+            synchronized(Store.FILE_LOCK){if(!request.version.equals(request.owner.savedSnapshot))throw new IOException("文稿版本已变化，未导出旧快照");saved=store.snapshotForExport(request.owner);snapshot=request.snapshot(saved);}
+            TextExport.Result result=TextExport.create(getCacheDir(),snapshot);verifyExportSnapshot(request.owner,saved);return result;
+        },value->{
+            if(!request.current(document,editorSession,draft,screen)){toast("文稿、页序或草稿已变化；未打开保存位置，源副本保留在本地缓存");return;}
+            TextExport.Result result=(TextExport.Result)value;
+            String title=TextExport.fileTitle(result.snapshot.title);
+            preparedText=new PreparedText(request,result.file,result.digest,result.bytes,title,result.snapshot.description());
+            if(resumed&&!stateSaved)offerTextDestination(preparedText);else toast("文字快照已生成；返回后从另存文字中明确选择，不自动打开位置");
+        },true);
+    }
+    private void offerTextDestination(PreparedText text){
+        if(!resumed||stateSaved||busy||text!=preparedText||!textContextCurrent(text)){toast("文字来源状态已变化，请重新选择；草稿保留");return;}
+        Models.Document offeredOwner=document;Object offeredSession=editorSession;Models.Page offeredDraft=draft;int offeredScreen=screen;
+        new AlertDialog.Builder(this).setTitle("另存 UTF-8 文字副本").setMessage(text.description+"\n文件："+text.title+"\n大小："+text.bytes+" 字节\n\n逐页标注来源、是否已保存及图像文字状态；人工编辑不代表已校对无误。此操作不会保存编辑页面，也不改变 PDF 文字层。由您选择保存位置；存储或同步取决于所选文档提供者。请求创建新文件；源在应用缓存，可能被清理。").setPositiveButton("选择新文件",(dialog,which)->{
+            if(document!=offeredOwner||editorSession!=offeredSession||draft!=offeredDraft||screen!=offeredScreen){toast("页面已切换，请重新选择文字来源");return;}
+            if(text!=preparedText||!textContextCurrent(text)||busy||!resumed||stateSaved){toast("来源状态已变化，未打开位置");return;}
+            try{text.context=new TextExport.Context(document,editorSession,draft,screen);}catch(Exception problem){error(problem);return;}
+            pendingExport=text.file;approvedExportSource=text.file;approvedExportDigest=text.digest;approvedExportBytes=text.bytes;pendingKind="txt";saveExport();
+        }).setNegativeButton("取消",null).show();
+    }
+    private static final class RecoveredText {final SaveJobStore.Job job;final PreparedText text;RecoveredText(SaveJobStore.Job job,PreparedText text){this.job=job;this.text=text;}}
+    private void recoverTextSave(String token){
+        if(busy||activeSaveToken!=null){toast("请先结束当前保存请求");return;}
+        runIO("正在核对上次文字快照…",()->{SaveJobStore jobs=saveJobs();SaveJobStore.Job job=jobs.read();if(job==null||!"text/plain".equals(job.mime)||token!=null&&!token.equals(job.token))throw new IOException("没有匹配的文字保存记录，请重新选择文字来源");File source;try{source=jobs.recoverSource(job.token,null);}catch(IOException unavailable){return new RecoveredText(job,null);}return new RecoveredText(job,new PreparedText(null,source,job.sha,job.bytes,job.title,"上次保存记录中的文字快照（未重新核对当前文稿）"));},value->{
+            RecoveredText offered=(RecoveredText)value;PreparedText recovered=offered.text;
+            if(!resumed||stateSaved)return;
+            if(recovered==null){endTextSave(offered.job.token);return;}
+            new AlertDialog.Builder(this).setTitle("文字快照另存新文件？").setMessage("来源："+recovered.title+"\n这可能包含旧识别或未保存草稿，状态以文件内生成时说明为准。旧目标可能不完整；不会再次打开旧目标。确认后结束旧文字请求并选择新文件。").setPositiveButton("核对快照并另选新文件",(dialog,which)->{
+                runIO("正在结束旧文字请求并核对源…",()->{SaveJobStore jobs=saveJobs();SaveJobStore.Job job=jobs.read();if(job==null||!job.token.equals(offered.job.token)||!new File(job.path).equals(recovered.file)||!job.sha.equals(recovered.digest))throw new IOException("保存记录已变化，请重新查找");return jobs.reselectText(job.token);},result->{preparedText=recovered;offerTextDestination(recovered);});
+            }).setNeutralButton("结束旧文字请求",(dialog,which)->endTextSave(offered.job.token)).setNegativeButton("保留记录",null).show();
+        });
+    }
+    private void endTextSave(String token){
+        if(busy||!resumed||stateSaved)return;
+        new AlertDialog.Builder(this).setTitle("结束旧文字保存请求？").setMessage("缓存可能已不可用，旧目标可能不完整。只结束这条文字保存回执，源副本与旧目标均不删除，也不会再次打开旧位置。结束后请重新选择文字来源，并新建文件另存。").setPositiveButton("结束旧文字请求",(dialog,which)->{
+            runIO("正在结束旧文字请求…",()->{saveJobs().closeTextRequest(token);return null;},value->{if(token.equals(activeSaveToken))activeSaveToken=null;handledSaveToken=token;approvedSaveTokens.remove(token);textSavePermits.remove(token);toast("旧文字请求已结束；原文稿、草稿和已有文件保留，可重新导出");});
+        }).setNegativeButton("保留记录",null).show();
+    }
+    private TextDocumentSave.Handle openNewTextDestination(Uri uri,int flags)throws Exception {
+        if(!android.provider.DocumentsContract.isDocumentUri(this,uri))throw new IOException("请选择系统文件选择器中的新文档；未打开目标");
+        retainPickerPermission(uri,flags,true);
+        ParcelFileDescriptor descriptor=getContentResolver().openFileDescriptor(uri,"rw");
+        if(descriptor==null)throw new IOException("所选文档无法打开");
+        try{
+            android.system.StructStat stat=android.system.Os.fstat(descriptor.getFileDescriptor());
+            boolean regular=(stat.st_mode&android.system.OsConstants.S_IFMT)==android.system.OsConstants.S_IFREG;
+            TextDocumentSave.requireEmpty(regular,stat.st_size);
+            android.system.Os.lseek(descriptor.getFileDescriptor(),0,android.system.OsConstants.SEEK_SET);
+            OutputStream out=new ParcelFileDescriptor.AutoCloseOutputStream(descriptor);
+            return new TextDocumentSave.Handle(){public boolean regular(){return regular;}public long bytes(){return stat.st_size;}public OutputStream output(){return out;}public void close()throws Exception{out.close();}};
+        }catch(Exception problem){try{descriptor.close();}catch(Exception closing){problem.addSuppressed(closing);}throw problem;}
+    }
     private void restoreDocuments(){
         runIO("正在查找隐藏的文稿…",()->{
         ArrayList<Models.Document> hidden=new ArrayList<>();File[] folders=store.root.listFiles();if(folders!=null)for(File f:folders)if(f.isDirectory()&&!f.getName().startsWith("."))try{Models.Document d=store.load(f.getName());if(d.archived)hidden.add(d);}catch(Exception ignored){}
@@ -1200,23 +1288,26 @@ public final class MainActivity extends Activity {
         if(activeSaveToken!=null){
             String offered=activeSaveToken;
             new AlertDialog.Builder(this).setTitle("保存请求尚未确认").setMessage("可取消，或重新选择一个保存位置。不会自动改写之前的目标；导出源保留。")
-                .setPositiveButton("重新选择",(d,w)->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化，请重新操作");return;}runIO("正在结束旧保存请求…",()->{saveJobs().cancel(offered);return null;},value->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化；导出源保留");return;}activeSaveToken=null;saveExport();});})
-                .setNegativeButton("取消此请求",(d,w)->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化，请重新操作");return;}String token=offered;activeSaveToken=null;handledSaveToken=token;runIO("正在取消保存请求…",()->{saveJobs().cancel(token);return null;},value->toast("已取消，导出源仍保留"));}).show();return;
+                .setPositiveButton("重新选择",(d,w)->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化，请重新操作");return;}runIO("正在结束旧保存请求…",()->{saveJobs().cancel(offered);return null;},value->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化；导出源保留");return;}activeSaveToken=null;textSavePermits.remove(offered);approvedSaveTokens.remove(offered);saveExport();});})
+                .setNegativeButton("取消此请求",(d,w)->{if(!offered.equals(activeSaveToken)){toast("保存请求已变化，请重新操作");return;}String token=offered;activeSaveToken=null;handledSaveToken=token;textSavePermits.remove(token);approvedSaveTokens.remove(token);runIO("正在取消保存请求…",()->{saveJobs().cancel(token);return null;},value->toast("已取消，导出源仍保留"));}).show();return;
         }
-        File source=pendingExport;String expectedDigest=approvedExportDigest;long expectedBytes=approvedExportBytes;String mime=exportMime(),title=(document==null?"扫描文稿":document.title).replaceAll("[\\/:*?\"<>|]","_")+"."+pendingKind;
-        runIO("正在核对导出源，准备另存为…",()->saveJobs().begin(source,mime,title),value->{
+        PreparedText text="txt".equals(pendingKind)?preparedText:null;
+        if("txt".equals(pendingKind)&&(!textContextCurrent(text)||text.context==null||!pendingExport.equals(text.file))){toast("文字副本来源已变化，请重新选择");return;}
+        File source=pendingExport;String expectedDigest=approvedExportDigest;long expectedBytes=approvedExportBytes;String mime=exportMime(),title=text!=null?text.title:(document==null?"扫描文稿":document.title).replaceAll("[\\/:*?\"<>|]","_")+"."+pendingKind;
+        runIO("正在核对导出源，准备另存为…",()->{if(text!=null)requireTextDiskCurrent(text);return saveJobs().begin(source,mime,title);},value->{
             SaveJobStore.Job job=(SaveJobStore.Job)value;
             if(!alive()||!resumed||stateSaved){toast("保存尚未启动；源与请求保留，请在文库核对未完成的保存");return;}
             if(!source.equals(approvedExportSource)||!Objects.equals(expectedDigest,approvedExportDigest)||expectedBytes!=approvedExportBytes){toast("导出源已变化，未打开保存位置；请在文库核对未完成的保存");return;}
             if(!matchesApprovedSource(expectedDigest,expectedBytes,job)){toast("片段副本与选中暂存不一致，未打开保存位置；请在文库核对未完成的保存");return;}
-            activeSaveToken=job.token;approvedSaveTokens.add(job.token);
+            if(text!=null&&!textContextCurrent(text)){runIO("正在结束过期文字请求…",()->{saveJobs().cancel(job.token);return null;},ignored->toast("文字来源已变化，未打开目标，请重新生成"));return;}
+            activeSaveToken=job.token;approvedSaveTokens.add(job.token);if(text!=null)textSavePermits.put(job.token,text);
             try{startActivityForResult(new Intent(this,SavePickerActivity.class).setAction(SavePickerActivity.ACTION_START).putExtra(SavePickerActivity.EXTRA_TOKEN,job.token),SAVE);}
             catch(RuntimeException e){error(new IOException("保存选择器启动结果未确认；源与请求保留，请在文库核对未完成的保存",e));}
         });
     }
     private void recoverSaveResult(String token,String legacyPath){
         runIO("正在核对保留的导出源…",()->saveJobs().recoverSource(token,legacyPath).getPath(),value->{
-            String path=(String)value;new AlertDialog.Builder(this).setTitle("请重新选择保存位置")
+            String path=(String)value;if(path.endsWith(".txt")){recoverTextSave(token);return;}new AlertDialog.Builder(this).setTitle("请重新选择保存位置")
                 .setMessage("这次保存的身份或完成状态无法确认，未自动重写旧位置。导出源仍保留；旧目标可能是半成品。")
                 .setPositiveButton("重新选择",(d,w)->{pendingExport=new File(path);String name=pendingExport.getName();pendingKind=name.substring(name.lastIndexOf('.')+1);saveExport();}).setNegativeButton("稍后",null).show();
         });
@@ -1228,7 +1319,7 @@ public final class MainActivity extends Activity {
     private void processSaveResult(Bundle event){
         String token=event.getString(SavePickerActivity.EXTRA_TOKEN);boolean accepted=event.getInt("saveAccepted")==1;
         if(event.getInt("result")!=RESULT_OK){
-            if(accepted&&token!=null){handledSaveToken=token;runIO("正在取消保存请求…",()->{saveJobs().cancel(token);return null;},value->toast("已取消或中断保存，导出源仍保留；需要时重新选择位置"));}
+            if(accepted&&token!=null){handledSaveToken=token;textSavePermits.remove(token);runIO("正在取消保存请求…",()->{saveJobs().cancel(token);return null;},value->toast("已取消或中断保存，导出源仍保留；需要时重新选择位置"));}
             else toast("保存已取消或未确认，未写入旧位置；导出源仍保留");return;
         }
         if(token==null||!accepted||!token.equals(activeSaveToken)){
@@ -1237,19 +1328,25 @@ public final class MainActivity extends Activity {
             recoverSaveResult(token,event.getString("source"));return;
         }
         if(!approvedSaveTokens.remove(token)){toast("旧保存结果缺少四角核对凭据，未写入目标；导出源保留，请重新生成或重新导出原图 / ZIP");return;}
+        PreparedText text=textSavePermits.remove(token);boolean textCurrent=textContextCurrent(text);
         activeSaveToken=null;handledSaveToken=token;Uri uri=event.getParcelable("uri");int flags=event.getInt("flags");
         if(!SavePickerActivity.validDestination(uri,getPackageName())){recoverSaveResult(token,null);return;}
         runIO("正在保存到新选择的位置…",()->{
-            SaveJobStore jobs=saveJobs();
+            SaveJobStore jobs=saveJobs();SaveJobStore.Job request=jobs.read();
+            if(request!=null&&token.equals(request.token)&&"text/plain".equals(request.mime)){
+                if(!textCurrent){jobs.cancel(token);throw new IOException("文字来源、文稿或页序已变化，未打开目标；请重新选择来源");}
+                try{requireTextDiskCurrent(text);}catch(Exception stale){jobs.cancel(token);throw stale;}
+                try{TextDocumentSave.save(jobs,token,()->openNewTextDestination(uri,flags));return "text";}catch(Exception problem){throw new SaveWriteFailure(token,problem);}
+            }
             try(SaveJobStore.Claim claim=jobs.claim(token)){
                 retainPickerPermission(uri,flags,true);
                 if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("保存已中断，未打开位置");
                 try(OutputStream out=getContentResolver().openOutputStream(uri,"w")){if(out==null)throw new IOException("所选位置无法写入");Exporter.copy(claim.input,out);}
                 jobs.done(token);return null;
             }catch(Exception e){try{jobs.uncertain(token);}catch(Exception state){e.addSuppressed(state);}throw new SaveWriteFailure(token,e);}
-        },value->toast("已保存，原图与导出源仍保留"));
+        },value->toast("text".equals(value)?"文字副本已保存；文稿草稿和 PDF 文字层未改变":"已保存，原图与导出源仍保留"));
     }
-    private String exportMime(){switch(pendingKind){case "pdf":return "application/pdf";case "zip":return "application/zip";case "png":return "image/png";case "jpg":return "image/jpeg";case "webp":return "image/webp";case "heic":return "image/heic";case "gif":return "image/gif";default:return "application/octet-stream";}}
+    private String exportMime(){switch(pendingKind){case "txt":return "text/plain";case "pdf":return "application/pdf";case "zip":return "application/zip";case "png":return "image/png";case "jpg":return "image/jpeg";case "webp":return "image/webp";case "heic":return "image/heic";case "gif":return "image/gif";default:return "application/octet-stream";}}
     private void shareExport(){if(pendingExport==null)return;Uri u=Uri.parse("content://"+getPackageName()+".files/exports/"+pendingExport.getName());Intent i=new Intent(Intent.ACTION_SEND);i.setType("application/pdf");i.putExtra(Intent.EXTRA_STREAM,u);i.setClipData(ClipData.newRawUri("PDF",u));i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivity(Intent.createChooser(i,"分享 PDF"));}
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
