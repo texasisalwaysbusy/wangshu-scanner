@@ -39,7 +39,7 @@ final class Store {
             safeId(id);File base=new File(new File(root,id),"manifest.json");
             byte[] bytes=ManifestFence.readConfirmed(base);
             Models.Document d=Models.Document.from(new JSONObject(new String(bytes,StandardCharsets.UTF_8)));
-            if(!d.id.equals(id))throw new IOException("Manifest identifier mismatch");d.savedSnapshot=snapshotDigest(d.json());return d;
+            if(!d.id.equals(id))throw new IOException("Manifest identifier mismatch");d.savedSnapshot=snapshotDigest(d.json());EditorSaveFlow.observePersisted(d.id,d.savedSnapshot);return d;
         }
     }
     void save(Models.Document d) throws Exception {
@@ -65,7 +65,7 @@ final class Store {
                 try{out=atomic.startWrite();out.write(bytes);out.getFD().sync();if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("保存已中断，待核对的记录均保留。");atomic.finishWrite(out);out=null;}
                 finally{if(out!=null)try{out.close();}catch(IOException ignored){/* fence remains pending */}}
                 ManifestFence.confirm(base,bytes);
-                d.savedSnapshot=savedSnapshot;d.manifestUncertain=false;
+                d.savedSnapshot=savedSnapshot;d.manifestUncertain=false;EditorSaveFlow.observePersisted(d.id,savedSnapshot);
             }catch(ManifestFence.Uncertain uncertain){throw uncertain;}
             catch(Exception failure){throw new ManifestFence.Uncertain("发布前后出现异常，候选文件未清理。",failure);}
         }

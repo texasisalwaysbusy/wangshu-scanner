@@ -29,6 +29,15 @@ public final class MainActivity extends Activity {
     private Models.Document document;
     private Models.Page originalPage,draft;
     private String originalPageBaseline;
+    private Object editorSession;
+    private final EditorSaveFlow editorSaves=new EditorSaveFlow();
+    private EditorSaveFlow.Saved pendingEditorSave;
+    private boolean startupEditorSaveSubmitted;
+    private String editorDocumentVersion="",startupDocumentVersion="";
+    private EditRecoveryState recovery;
+    private RecoverySourceGate.Ticket recoveryLoadTicket;
+    private boolean navigationCheckRunning;
+    private long navigationCycle;
     private int screen=0,generation=0,previewGeneration=0;
     private boolean cropping=false,busy=false,cropLandscape=false;
     private CropView cropView;
@@ -71,6 +80,9 @@ public final class MainActivity extends Activity {
         startupDocumentId=saved!=null?saved.getString("document"):getPreferences(0).getString("lastDocument",null);
         startupDraft=saved==null?null:saved.getString("draft");
         startupOriginal=saved==null?null:saved.getString("draftOriginal");
+        startupEditorSaveSubmitted=saved!=null&&saved.getBoolean("editorSaveSubmitted",false);
+        startupDocumentVersion=saved==null?"":saved.getString("draftDocumentVersion","");
+        recovery=saved==null?null:EditRecoveryState.read(saved::getString);
         if(saved!=null&&saved.getString("pendingExport")!=null){pendingExport=new File(saved.getString("pendingExport"));pendingKind=saved.getString("pendingKind","pdf");}
         if(saved!=null&&saved.getString("recentPdf")!=null){recentPdf=new File(saved.getString("recentPdf"));recentPdfRevision=saved.getString("recentPdfRevision","");}
         restorePendingResultState(saved);restoreCaptureRequest(saved);
@@ -83,42 +95,86 @@ public final class MainActivity extends Activity {
         // Present an Activity window before any manifest read/FILE_LOCK wait.
         base("望舒扫描","正在恢复本地工作区…",null);startupPending=true;
         final String id=startupDocumentId;final int startupGeneration=generation;
+        final EditRecoveryState restoring=recovery;
         runIO("正在读取本地文稿…",()->{
-            try{if(share)return store.create();return id==null?null:store.load(id);}catch(Exception|OutOfMemoryError|LinkageError e){return e;}
+            Throwable recoveryProblem=null;
+            if(restoring!=null&&restoring.entry!=null)try{restoring.loaded(EditDraftStore.recovery(getFilesDir()).load(restoring.owner,restoring.entry));}
+                catch(Exception|OutOfMemoryError|LinkageError problem){recoveryProblem=problem;}
+            Object loaded;try{loaded=share?store.create():(id==null?null:store.load(id));}
+                catch(Exception|OutOfMemoryError|LinkageError problem){loaded=problem;}
+            return new StartupValue(loaded,recoveryProblem);
         },value->completeStartup(startupGeneration,value,share,uris));
     }
+    private static final class StartupValue {
+        final Object document;final Throwable recoveryProblem;
+        StartupValue(Object document,Throwable problem){this.document=document;recoveryProblem=problem;}
+    }
     private void completeStartup(int expectedGeneration,Object value,boolean share,ArrayList<Uri> uris){
-        String restoreDraft=startupDraft,restoreOriginal=startupOriginal;startupPending=false;startupDocumentId=null;startupDraft=null;startupOriginal=null;
         if(generation!=expectedGeneration||document!=null)return;
-        if(value instanceof Models.Document)document=(Models.Document)value;
-        else if(value instanceof Throwable)toast("上次文稿未能恢复，请查看文稿列表");
-        if(document!=null)showDocument();else showLibrary("");
-        if(restoreDraft!=null&&document!=null)restoreDraft(restoreDraft,restoreOriginal);
+        StartupValue loaded=(StartupValue)value;
+        String encoded=startupDraft,baseline=startupOriginal,version=startupDocumentVersion,owner=startupDocumentId;
+        boolean submitted=startupEditorSaveSubmitted;
+        // Transfer every rejected editor snapshot to the recovery holder before clearing startup fields.
+        if(loaded.document instanceof Models.Document)document=(Models.Document)loaded.document;
+        if(recovery==null&&encoded!=null){
+            try{
+                if(document==null)throw new IOException("原文稿暂不可读取");
+                restoreDraft(encoded,baseline,version,submitted);
+            }catch(Exception problem){
+                recovery=new EditRecoveryState(owner==null?"unknown":owner,
+                        new EditDraftStore.Draft(owner==null?"unknown":owner,version,baseline==null?"":baseline,encoded,submitted,0));
+            }
+        }
+        startupPending=false;startupDocumentId=null;startupDraft=null;startupOriginal=null;startupDocumentVersion="";startupEditorSaveSubmitted=false;
+        if(recovery!=null){
+            showRecovery("待核对编辑未自动应用。恢复记录不代表页面已保存；已保存页面不会被旧稿覆盖。");
+            if(!recovery.verified&&recovery.data!=null)retainRecovery(recovery);
+            else if(loaded.recoveryProblem!=null)error(loaded.recoveryProblem);
+            return;
+        }
+        // restoreDraft may already have built the still-current editor.
+        if(screen!=2){if(document!=null)showDocument();else showLibrary("");}
+        if(loaded.document instanceof Throwable)toast("上次文稿未能恢复，请查看文稿列表");
         if(share&&document!=null&&!uris.isEmpty())importImages(uris);
     }
-    private void restoreDraft(String encoded,String baseline){
-        try{Models.Page p=Models.Page.from(new org.json.JSONObject(encoded));for(Models.Page x:document.pages)if(x.id.equals(p.id)){if(baseline==null||x.removed||p.removed||!x.file.equals(p.file)||!x.sha256.equals(p.sha256)||!x.json().toString().equals(baseline))throw new IOException("页面基线已变化");openEditor(x,p);return;}throw new IOException("页面不存在");}
-        catch(Exception e){toast("未恢复旧编辑草稿：页面基线缺失或已变化；草稿可能丢失，已保存文稿未覆盖");}
+    private void restoreDraft(String encoded,String baseline,String version,boolean submitted)throws Exception {
+        Models.Page edited=strictCheckpointPage(encoded),old=strictCheckpointPage(baseline);
+        EditRecoveryPolicy.Identity identity=identity(document.id,old);
+        if(!EditRecoveryPolicy.sameSource(identity,identity(document.id,edited)))throw new IOException("草稿原图身份不一致");
+        for(Models.Page current:document.active())if(current.id.equals(edited.id)){
+            EditRecoveryPolicy.Decision result=EditRecoveryPolicy.decide(identity,identity(document.id,current),version,
+                    document.savedSnapshot,baseline,encoded,current.json().toString(),submitted);
+            if(result==EditRecoveryPolicy.Decision.BASELINE){openEditor(current,edited);return;}
+            if(result==EditRecoveryPolicy.Decision.CONTENTS_SAVED){openEditor(current);toast("当前保存内容与记录相同；已打开当前版本，不自动跳页");return;}
+        }
+        throw new IOException("页面或文稿版本已变化，旧编辑仅保留为隔离记录");
     }
     @Override protected void onStart(){super.onStart();if(watchdog!=null){watchdog.start();watchdog.phase("start");}}
-    @Override protected void onResume(){super.onResume();resumed=true;stateSaved=false;if(watchdog!=null)watchdog.phase("resume");SystemBars.apply(this,!dark());scheduleResultDrain();scheduleCaptureDrain();refreshInboxNotice();}
-    @Override protected void onPause(){resumed=false;super.onPause();}
+    @Override protected void onResume(){super.onResume();resumed=true;stateSaved=false;if(watchdog!=null)watchdog.phase("resume");SystemBars.apply(this,!dark());deliverPendingEditorSave();scheduleResultDrain();scheduleCaptureDrain();refreshInboxNotice();}
+    @Override protected void onPause(){resumed=false;navigationCycle++;super.onPause();}
     @Override protected void onStop(){if(watchdog!=null)watchdog.stop();super.onStop();}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(watchdog!=null)watchdog.phase(focused?"focus-gained":"focus-lost");}
     private boolean dark(){return (getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;}
     private void palette(){INK=getColor(R.color.ink);MUTED=getColor(R.color.muted);TEAL=getColor(R.color.accent);PAPER=getColor(R.color.paper);SURFACE=getColor(R.color.surface);ON_ACCENT=getColor(R.color.on_accent);PREVIEW=getColor(R.color.preview);}
     @Override public void onConfigurationChanged(android.content.res.Configuration configuration){super.onConfigurationChanged(configuration);if(screen==2&&draft!=null&&!busy){if(cropping)reframeCrop();else buildEditor();}}
     @Override protected void onSaveInstanceState(Bundle out){
+        navigationCycle++;
         savePendingResultState(out);if(captureRequest!=null&&captureRequest.phase<=CaptureRequest.LAUNCHED&&currentCapture(captureRequest))out.putString("singleCaptureToken",captureRequest.token);super.onSaveInstanceState(out);
         if(document!=null)out.putString("document",document.id);
         else if(startupPending&&startupDocumentId!=null)out.putString("document",startupDocumentId);
-        if(startupPending&&startupDraft!=null)out.putString("draft",startupDraft);
-        if(startupPending&&startupOriginal!=null)out.putString("draftOriginal",startupOriginal);
-        if(draft!=null)try{if(cropping&&cropView!=null)draft.quad=cropView.getQuad();out.putString("draft",draft.json().toString());if(originalPageBaseline!=null)out.putString("draftOriginal",originalPageBaseline);}catch(Exception ignored){}
+        if(recovery!=null)recovery.write(out::putString);
+        else{
+            if(startupPending&&startupDraft!=null)out.putString("draft",startupDraft);
+            if(startupPending&&startupOriginal!=null)out.putString("draftOriginal",startupOriginal);
+            if(startupPending)out.putString("draftDocumentVersion",startupDocumentVersion);
+            if(draft!=null)try{if(cropping&&cropView!=null)draft.quad=cropView.getQuad();out.putString("draft",draft.json().toString());if(originalPageBaseline!=null)out.putString("draftOriginal",originalPageBaseline);out.putString("draftDocumentVersion",editorDocumentVersion);}catch(Exception ignored){}
+            if(startupEditorSaveSubmitted||editorSaves.hasPending()||pendingEditorSave!=null)out.putBoolean("editorSaveSubmitted",true);
+        }
         if(pendingExport!=null){out.putString("pendingExport",pendingExport.getPath());out.putString("pendingKind",pendingKind);}
         if(recentPdf!=null){out.putString("recentPdf",recentPdf.getPath());out.putString("recentPdfRevision",recentPdfRevision);}
     }
     @Override protected void onDestroy(){
+        editorSaves.abandon();pendingEditorSave=null;editorSession=null;navigationCheckRunning=false;
         generation++;previewGeneration++;operationEpoch++;cancelOperation=true;operations.shutdownNow();worker.shutdownNow();
         if(watchdog!=null)watchdog.close();handler.removeCallbacksAndMessages(null);
         if(progress!=null){progress.dismiss();progress=null;}if(preview!=null)preview.setImageDrawable(null);if(cropView!=null)cropView.setImage(null,Geometry.full());releaseImages();super.onDestroy();
@@ -161,8 +217,9 @@ public final class MainActivity extends Activity {
         if(shownBitmap!=null){shownBitmap.recycle();shownBitmap=null;}if(cropBitmap!=null){cropBitmap.recycle();cropBitmap=null;}
     }
     private void showLibrary(String query){
-        cancelPendingCapture();screen=0;document=null;draft=null;originalPage=null;originalPageBaseline=null;getPreferences(0).edit().remove("lastDocument").apply();
+        cancelPendingCapture();screen=0;document=null;draft=null;originalPage=null;originalPageBaseline=null;editorSession=null;editorDocumentVersion="";getPreferences(0).edit().remove("lastDocument").apply();
         base("望舒扫描","离线保存 · 原图保留 · 无需账户",null);
+        body.addView(button("找回编辑恢复记录（含冲突稿）",this::browseRecovery));
         if(getPreferences(0).getString("captureBatch",null)!=null)body.addView(button("找回未整理的连续扫描",this::recoverCaptureBatch));
         EditText search=new EditText(this);search.setSingleLine();search.setHint("搜索名称或已识别文字");search.setText(query);body.addView(search);
         LinearLayout actions=row();weighted(actions,primary("＋ 新建文稿",()->runIO("正在创建文稿…",store::create,value->{document=(Models.Document)value;showDocument();})));weighted(actions,button("恢复备份",this::pickBackup));body.addView(actions);
@@ -211,7 +268,7 @@ public final class MainActivity extends Activity {
     private void showDocument(){
         if(document==null){showLibrary("");return;}
         if(captureRequest!=null&&!captureRequest.owner.equals(document.id))cancelPendingCapture();
-        screen=1;draft=null;originalPage=null;originalPageBaseline=null;getPreferences(0).edit().putString("lastDocument",document.id).apply();
+        screen=1;draft=null;originalPage=null;originalPageBaseline=null;editorSession=null;editorDocumentVersion="";getPreferences(0).edit().putString("lastDocument",document.id).apply();
         base(document.title,"所有改动保留原图 · 点击页面进行编辑",()->showLibrary(""));
         if(document.manifestUncertain)body.addView(text("文稿保存状态未确认；请勿继续修改或导出。原图和记录候选保留，待核对恢复。",16,INK));
         LinearLayout top=row();weighted(top,button("重命名",this::rename));if(document.pages.stream().anyMatch(page->page.removed))weighted(top,button("恢复页面",this::restorePages));weighted(top,button("更多",this::documentMenu));body.addView(top);
@@ -263,7 +320,7 @@ public final class MainActivity extends Activity {
     private boolean matches(Models.Document d,String q){if(d.title.toLowerCase(Locale.ROOT).contains(q))return true;for(Models.Page p:d.active())if(p.cropConfirmed()&&p.ocrKey.equals(OcrEngine.key(p))&&p.ocrText.toLowerCase(Locale.ROOT).contains(q))return true;return false;}
     private interface SavedEdit {boolean save()throws Exception;}
     private void saveEdit(Models.Document owner,SavedEdit edit,Runnable after){
-        if(owner==null||document!=owner||busy){toast("文稿已变化或正在处理，请稍后重试");return;}
+        if(owner==null||document!=owner||busy||recovery!=null){toast("请先处理当前编辑恢复记录或等待操作完成");return;}
         // DocumentMutations owns rollback and Store.FILE_LOCK on this background path.
         // Only the still-current owner can change the UI after a durable commit.
         runIO("正在保存文稿…",()->{try{return edit.save();}catch(Exception|OutOfMemoryError|LinkageError e){return e;}},value->{
@@ -281,10 +338,10 @@ public final class MainActivity extends Activity {
         String[] labels=new String[removed.size()];for(int i=0;i<labels.length;i++)labels[i]="恢复页面 "+(i+1)+" · "+modeName(removed.get(i).mode);
         new AlertDialog.Builder(this).setTitle("恢复页面（原图保留）").setItems(labels,(d,w)->saveThenShow(owner,()->DocumentMutations.removed(owner,removed.get(w),false,store::saveIfCurrent))).setNegativeButton("关闭",null).show();
     }
-    private void documentMenu(){new AlertDialog.Builder(this).setTitle("文稿操作").setItems(new String[]{"备份原图与编辑参数（ZIP）","隐藏文稿（保留文件）","查看原图保留说明","本地识别文字（中英）","查看 / 复制识别文字","找回中断导入（追加到末尾）","分享已生成的 PDF","再次保存已生成的 PDF","拍照收件箱（找回未导入照片）","查找已结束批次的迟到拍照","找回暂存编辑"},(dialog,which)->{
+    private void documentMenu(){new AlertDialog.Builder(this).setTitle("文稿操作").setItems(new String[]{"备份原图与编辑参数（ZIP）","隐藏文稿（保留文件）","查看原图保留说明","本地识别文字（中英）","查看 / 复制识别文字","找回中断导入（追加到末尾）","分享已生成的 PDF","再次保存已生成的 PDF","拍照收件箱（找回未导入照片）","查找已结束批次的迟到拍照","找回暂存编辑","预览已生成的 PDF"},(dialog,which)->{
         if(which==0){Models.Document owner=document;runIO("正在打包原图…",()->{Models.Document copy=store.snapshotForExport(owner);File file=Exporter.backup(store,copy,new File(getCacheDir(),"exports"));verifyExportSnapshot(owner,copy);return file;},f->{if(document!=owner){toast("文稿已切换，备份仍保留在本地缓存");return;}pendingExport=(File)f;approvedExportSource=pendingExport;approvedExportDigest=null;approvedExportBytes=0;pendingKind="zip";saveExport();});}
         else if(which==1){Models.Document owner=document;new AlertDialog.Builder(this).setMessage("文稿将从列表隐藏，原始文件仍保留在应用私有目录。请先导出 ZIP 备份；可通过备份恢复。是否隐藏？").setPositiveButton("隐藏",(d,w)->{saveEdit(owner,()->DocumentMutations.archived(owner,true,store::saveIfCurrent),()->showLibrary(""));}).setNegativeButton("取消",null).show();}
-        else if(which==2)about();else if(which==3)recognizeText();else if(which==4)showText();else if(which==5){Models.Document target=document;runIO("正在查找已保存的原图…",()->store.recoverOrphans(target),count->{showDocument();toast("已找回 "+count+" 页，追加到文稿末尾；已有页面不变");});}else if(which==8)cameraInbox();else if(which==9)recoverClosedCapture();else if(which==10)recoverEditCheckpoint();else reusePdf(which==6);
+        else if(which==2)about();else if(which==3)recognizeText();else if(which==4)showText();else if(which==5){Models.Document target=document;runIO("正在查找已保存的原图…",()->store.recoverOrphans(target),count->{showDocument();toast("已找回 "+count+" 页，追加到文稿末尾；已有页面不变");});}else if(which==8)cameraInbox();else if(which==9)recoverClosedCapture();else if(which==10)recoverEditCheckpoint();else if(which==11)previewPdf();else reusePdf(which==6);
     }).show();}
     private void recognizeText(){if(document.active().isEmpty()){toast("请先添加页面");return;}new AlertDialog.Builder(this).setTitle("本地文字识别").setMessage("图片不上传。识别结果可能有错，数学公式和手写字尤其需要核对；原图不会被替换。重新识别会逐页替换已保存的识别文字，如需保留请先在“查看 / 复制识别文字”中复制。识别文字后可在首页搜索内容。").setPositiveButton("仅英文",(d,w)->runRecognition("eng")).setNeutralButton("中英混合",(d,w)->runRecognition("chi_sim+eng")).setNegativeButton("取消",null).show();}
     private void runRecognition(String language){Models.Document target=document;runIO("本地识别中 · 可取消…",()->{requireReviewedCrops(target);requireReviewedCrops(store.snapshotForExport(target));OcrEngine.recognize(store,target,language,(done,total)->runOnUiThread(()->{if(progress!=null)progress.setMessage("本地识别 · "+done+" / "+total);}));return null;},r->{showDocument();showText();},true);}
@@ -527,18 +584,20 @@ public final class MainActivity extends Activity {
     }
     private void openEditor(Models.Page p){openEditor(p,null);}
     private void openEditor(Models.Page p,Models.Page restoredDraft){
+        if(recovery!=null){showRecovery("请先保留或处理现有恢复记录");return;}
         cancelPendingCapture();
         try{
             // Prepare both values before publishing editor state. A restored draft
             // must be installed before controls, crop status and preview are built.
             String baseline=p.json().toString();
             Models.Page initial=restoredDraft==null?p.copy():restoredDraft.copy();
-            originalPageBaseline=baseline;originalPage=p;draft=initial;
+            originalPageBaseline=baseline;originalPage=p;draft=initial;editorSession=new Object();editorDocumentVersion=document.savedSnapshot;
         }catch(Exception e){error(e);return;}
         screen=2;buildEditor();
     }
     private void buildEditor(){
-        base("编辑页面",draft.cropConfirmed()?"四角已核对 · 原图始终保留":"四角待核对 · 请检查原图后确认",this::leaveEditor);
+        ArrayList<String> order=editorOrder(document);int position=order.indexOf(draft.id);
+        base("编辑页面 · 第 "+(position+1)+" / "+order.size()+" 页",draft.cropConfirmed()?"四角已核对 · 原图始终保留":"四角待核对 · 请检查原图后确认",this::leaveEditor);
         if(document!=null&&document.manifestUncertain)body.addView(text("文稿保存状态未确认；请勿继续修改或导出。原图和记录候选保留，待核对恢复。",16,INK));
         editorStatus=text("正在生成预览…",12,MUTED);body.addView(editorStatus);
         boolean landscape=getResources().getConfiguration().orientation==android.content.res.Configuration.ORIENTATION_LANDSCAPE;
@@ -546,10 +605,16 @@ public final class MainActivity extends Activity {
         FrameLayout frame=new FrameLayout(this);preview=new ImageView(this);preview.setScaleType(ImageView.ScaleType.FIT_CENTER);preview.setBackgroundColor(PREVIEW);preview.setContentDescription("处理后页面预览");frame.addView(preview,new FrameLayout.LayoutParams(-1,-1));workspace.addView(frame,landscape?new LinearLayout.LayoutParams(0,-1,1.2f):new LinearLayout.LayoutParams(-1,0,1.3f));
         ScrollView controlsScroll=new ScrollView(this);controlsScroll.setContentDescription("页面增强工具，可上下滚动");controlsScroll.setFillViewport(false);controlsScroll.setScrollbarFadingEnabled(false);LinearLayout controls=column();controlsScroll.addView(controls);workspace.addView(controlsScroll,landscape?new LinearLayout.LayoutParams(0,-1,1):new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout modes=row();for(String m:new String[]{"COLOR","GRAY","BW"}){Button choice=button(modeName(m),()->{draft.mode=m;for(int i=0;i<modes.getChildCount();i++){Button item=(Button)modes.getChildAt(i);boolean selected=m.equals(item.getTag());item.setSelected(selected);styleButton(item,selected);}requestPreview();});choice.setTag(m);choice.setSelected(m.equals(draft.mode));styleButton(choice,m.equals(draft.mode));weighted(modes,choice);}controls.addView(modes);
-        LinearLayout tools=row();weighted(tools,button("四角裁切",this::startCrop));weighted(tools,button("旋转 90°",()->{draft.rotation=(draft.rotation+1)%4;requestPreview();}));weighted(tools,button("重置",()->{draft.quad=Geometry.full();draft.rotation=0;draft.mode="COLOR";draft.shadows=false;draft.brightness=0;draft.bias=8;buildEditor();}));controls.addView(tools);
+        LinearLayout tools=row();weighted(tools,button("四角裁切",this::startCrop));weighted(tools,button("旋转 90°",()->{draft.rotation=(draft.rotation+1)%4;buildEditor();}));weighted(tools,button("重置",()->{draft.quad=Geometry.full();draft.rotation=0;draft.mode="COLOR";draft.shadows=false;draft.brightness=0;draft.bias=8;buildEditor();}));controls.addView(tools);
         LinearLayout adjust=row();weighted(adjust,button("亮度 / 黑白细节",this::adjustments));CheckBox shadow=new CheckBox(this);shadow.setText("减淡阴影");shadow.setTextColor(INK);shadow.setChecked(draft.shadows);shadow.setOnCheckedChangeListener((v,checked)->{draft.shadows=checked;requestPreview();});weighted(adjust,shadow);controls.addView(adjust);
+        controls.addView(text("缺角或纸张超出画面时，自动边界可能不可靠。请在“四角裁切”中恢复全图并核对；画面外的内容需要重拍，裁切无法补回。",13,MUTED));
+        TextView capacity=text("正在核对恢复记录余量…",12,MUTED);controls.addView(capacity);fillRecoveryQuota(capacity,document.id,true);
         controls.addView(button("暂存编辑副本（不改已保存页面）",this::checkpointEditor));
-        LinearLayout footer=row();weighted(footer,button("导出本页图片",this::exportPageImage));weighted(footer,primary("保存本页",this::saveEditor));root.addView(footer);requestPreview();
+        LinearLayout footer=row();weighted(footer,button("导出本页图片",this::exportPageImage));weighted(footer,button("保存并返回",this::saveEditor));root.addView(footer);
+        Button advance=primary(position==order.size()-1?"保存并返回文稿（末页）":"保存并下一页",()->saveEditor(true));
+        advance.setEnabled(position>=0&&draft.cropConfirmed()&&document!=null&&!document.manifestUncertain);
+        advance.setContentDescription(draft.cropConfirmed()?advance.getText():"请先核对并确认四角，再保存并下一页");
+        root.addView(advance,new LinearLayout.LayoutParams(-1,dp(52)));requestPreview();
     }
     private void requestPreview(){
         if(draft==null||preview==null||cropping)return;int ticket=++previewGeneration;ImageView target=preview;Models.Document d=document;Models.Page p;
@@ -591,14 +656,272 @@ public final class MainActivity extends Activity {
         t.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){public void onProgressChanged(SeekBar s,int p,boolean user){draft.bias=p+1;threshold.setText("黑白保留细节："+draft.bias+"（小值保留浅笔迹）");}public void onStartTrackingTouch(SeekBar s){}public void onStopTrackingTouch(SeekBar s){requestPreview();}});
         new AlertDialog.Builder(this).setTitle("保守增强").setView(panel).setPositiveButton("完成",(d,w)->requestPreview()).show();
     }
-    private void saveEditor(){
+    private static ArrayList<String> editorOrder(Models.Document owner){
+        ArrayList<String> ids=new ArrayList<>();if(owner!=null)for(Models.Page p:owner.active())ids.add(p.id);return ids;
+    }
+    private void saveEditor(){saveEditor(false);}
+    private void saveEditor(boolean advance){
+        if(busy||!alive()||screen!=2||document==null||draft==null||recovery!=null){toast("请等待当前操作完成或处理恢复记录");return;}
         if(cropping){draft.quad=cropView.getQuad();buildEditor();return;}
         Models.Document owner=document;Models.Page before=originalPage;String baseline=originalPageBaseline;
-        try{Models.Page next=draft.copy(); // Keep historical OCR and its original key; stale text is displayed only as reference.
-            saveThenShow(owner,()->{synchronized(Store.FILE_LOCK){if(before==null||baseline==null||!before.json().toString().equals(baseline))throw new IOException("页面在编辑期间已变化，本次草稿未覆盖；请重新打开页面");return DocumentMutations.replacePage(owner,before,next,store::saveIfCurrent);}});
-        }catch(Exception e){error(e);}
+        final Models.Page next;final EditorSaveFlow.Request request;
+        try{
+            if(before==null)throw new IOException("当前编辑页面缺失，草稿未保存");
+            next=draft.copy(); // Historical OCR is retained; its old key still marks stale text.
+            request=editorSaves.begin(editorSession,owner.id,before.id,baseline,next.json().toString(),editorOrder(owner),next.cropConfirmed(),advance);
+        }catch(Exception e){error(e);return;}
+        final EditRecoveryState held=new EditRecoveryState(owner.id,
+                new EditDraftStore.Draft(owner.id,editorDocumentVersion,baseline,request.edited,true,0));
+        recovery=held;
+        // First retain a verified immutable edit record. Only then may the document transaction begin.
+        runIO("正在保留恢复记录并保存当前页…",()->{
+            try{return EditorSaveFlow.afterRecovery(
+                ()->held.retained(EditDraftStore.recovery(getFilesDir()).retain(held.owner,held.data.version,held.data.baseline,held.data.edited,true)),
+                ()->{synchronized(Store.FILE_LOCK){
+                    if(!held.data.version.equals(owner.savedSnapshot))throw new IOException("编辑期间文稿版本已变化；恢复记录保留，未保存页面");
+                    return editorSaves.commit(request,owner.id,before.json().toString(),editorOrder(owner),
+                            ()->DocumentMutations.replacePage(owner,before,next,store::saveIfCurrent),()->owner.savedSnapshot);
+                }});
+            }catch(Exception|OutOfMemoryError|LinkageError failure){return failure;}
+        },value->{
+            if(value instanceof Throwable){
+                editorSaves.fail(request);
+                if(recovery==held){showRecovery(held.verified?"页面未确认保存；编辑恢复记录已独立写入并核对。":"恢复记录尚未写入，因此没有开始保存页面；当前编辑仍保留在状态中。");error((Throwable)value);}
+                return;
+            }
+            pendingEditorSave=(EditorSaveFlow.Saved)value;deliverPendingEditorSave();
+        });
     }
-    private void leaveEditor(){if(cropping){buildEditor();return;}new AlertDialog.Builder(this).setTitle("离开编辑？").setMessage("已保存的原图和页面不变。当前预览可保存后离开；此前明确暂存的编辑副本仍保留，可在文稿“更多”中找回。").setPositiveButton("保存",(d,w)->saveEditor()).setNegativeButton("放弃本次修改",(d,w)->showDocument()).setNeutralButton("继续编辑",null).show();}
+    private static final class NavigationCheck {
+        final Models.Document fresh;final EditorSaveFlow.Persisted persisted;
+        NavigationCheck(Models.Document fresh,EditorSaveFlow.Persisted persisted){this.fresh=fresh;this.persisted=persisted;}
+    }
+    private void deliverPendingEditorSave(){
+        final EditorSaveFlow.Saved saved=pendingEditorSave;
+        if(saved==null||!resumed||stateSaved||!alive()||busy||navigationCheckRunning)return;
+        final EditRecoveryState held=recovery;final EditorSaveFlow.Request request=saved.request;
+        final long cycle=navigationCycle;
+        navigationCheckRunning=true;
+        runIO("正在核对磁盘上的已保存版本…",()->{
+            try{
+                final Models.Document[] loaded={null};
+                EditorSaveFlow.Persisted check=EditorSaveFlow.checkPersisted(()->{
+                    Models.Document fresh=store.load(request.documentId);loaded[0]=fresh;
+                    return new EditorSaveFlow.Persisted(fresh.id,fresh.savedSnapshot,editorOrder(fresh));
+                });
+                return new NavigationCheck(loaded[0],check);
+            }catch(Exception|OutOfMemoryError|LinkageError failure){return failure;}
+        },value->{
+            navigationCheckRunning=false;
+            // A background/saved-state interval invalidates this disk observation: reread on resume.
+            if(!EditorSaveFlow.observationCurrent(cycle,navigationCycle,resumed,stateSaved)){
+                if(resumed&&!stateSaved&&pendingEditorSave==saved&&recovery==held)handler.post(this::deliverPendingEditorSave);
+                return;
+            }
+            if(pendingEditorSave!=saved||recovery!=held)return;
+            pendingEditorSave=null;
+            try{
+                if(!editorSaves.finish(saved,editorSession,document==null?null:document.id,originalPage==null?null:originalPage.id,
+                        originalPageBaseline,draft==null?null:draft.json().toString())){
+                    if(recovery==held&&held!=null&&held.verified)recovery=null; // immutable record remains discoverable from home
+                    return;
+                }
+                if(value instanceof Throwable){showRecovery("保存动作已返回成功，但当前磁盘版本无法核对；不自动跳页。恢复记录保留。");error((Throwable)value);return;}
+                NavigationCheck checked=(NavigationCheck)value;
+                if(!EditorSaveFlow.permitsNavigation(saved,checked.persisted,EditorSaveFlow.observedVersion(request.documentId))){
+                    showRecovery("保存后磁盘文稿版本或页序已变化；不自动跳页，不把旧编辑套到新版本。恢复记录保留。");return;
+                }
+                recovery=null;document=checked.fresh;
+                if(!request.advance){showDocument();return;}
+                if(request.nextPageId==null){showDocument();toast("已保存当前末页，返回文稿");return;}
+                for(Models.Page page:document.active())if(page.id.equals(request.nextPageId)){openEditor(page);return;}
+                showDocument();toast("当前保存版本的下一页不可用，请核对文稿");
+            }catch(Exception e){editorSaves.fail(request);showRecovery("保存结果需核对；恢复记录保留，未自动跳页。");error(e);}
+        });
+    }
+    private void leaveEditor(){if(busy||editorSaves.hasPending()){toast("正在保存当前页，请等待结果后再返回");return;}if(cropping){buildEditor();return;}new AlertDialog.Builder(this).setTitle("离开编辑？").setMessage("已保存的原图和页面不变。当前预览可保存后离开；此前明确暂存的编辑副本仍保留，可在文稿“更多”中找回。").setPositiveButton("保存",(d,w)->saveEditor()).setNegativeButton("放弃本次修改",(d,w)->showDocument()).setNeutralButton("继续编辑",null).show();}
+    private static EditRecoveryPolicy.Identity identity(String owner,Models.Page page){
+        return new EditRecoveryPolicy.Identity(owner,page.id,page.file,page.sha256);
+    }
+    private static Models.Page recoveryEdited(Models.Document current,EditDraftStore.Draft record)throws Exception{
+        Models.Page old=strictCheckpointPage(record.baseline),edited=strictCheckpointPage(record.edited);
+        EditRecoveryPolicy.Identity source=identity(record.document,old);
+        if(!EditRecoveryPolicy.sameSource(source,identity(record.document,edited))||old.removed||edited.removed)
+            throw new IOException("恢复记录的原图身份不一致，未应用");
+        if(current==null||current.archived||current.manifestUncertain)throw new IOException("原文稿暂不可编辑，记录仅供查看");
+        for(Models.Page page:current.active())if(page.id.equals(edited.id)){
+            EditRecoveryPolicy.Decision result=EditRecoveryPolicy.decide(source,identity(current.id,page),record.version,
+                    current.savedSnapshot,record.baseline,record.edited,page.json().toString(),record.submitted);
+            if(result==EditRecoveryPolicy.Decision.BASELINE)return edited;
+            if(result==EditRecoveryPolicy.Decision.CONTENTS_SAVED)throw new IOException("当前保存内容与此记录相同；请打开当前版本，不重放旧编辑");
+            break;
+        }
+        throw new IOException("文稿版本、页面或原图已变化；只能查看或导出此记录，再人工编辑当前版本");
+    }
+    private static String excerpt(String value){if(value==null)return "(内容尚未读取)";return value.length()>32000?value.substring(0,32000)+"\n…界面仅显示前32000字，完整内容仍在记录中，可导出…":value;}
+    private void showRecovery(String message){
+        EditRecoveryState held=recovery;if(held==null){toast("没有待核对的编辑恢复记录");return;}
+        screen=3;editorSession=null;base("编辑恢复记录",held.verified?"记录已独立写入核对 · 不代表页面已保存":"尚未核实落盘 · 不离开或丢弃当前记录",this::leaveRecovery);
+        ScrollView scroll=new ScrollView(this);LinearLayout panel=column();scroll.addView(panel);
+        panel.addView(text(message,16,INK));
+        panel.addView(text("所属文稿："+held.owner+"\n记录："+(held.entry==null?"尚无文件回执":held.entry.token)+"\n不会自动覆盖已保存页面。记录含编辑参数和可能存在的旧识别文字，属于私密资料。普通ZIP备份不包含这些恢复记录；卸载或清除应用数据会丢失，请先单独导出。",13,MUTED));
+        TextView capacity=text("正在核对恢复记录额度…",12,MUTED);panel.addView(capacity);fillRecoveryQuota(capacity,held.owner,false);
+        if(!held.verified)panel.addView(button("重试保留 / 读取恢复记录",()->retainRecovery(held)));
+        panel.addView(button("仅原版本一致时载入编辑预览",()->loadRecoveryEditor(held)));
+        panel.addView(button("重新打开当前已保存版本（不套旧稿）",()->openCurrentRecovery(held)));
+        panel.addView(button("导出这份恢复记录副本",()->exportRecovery(held)));
+        panel.addView(button("返回文稿列表（记录保留）",this::leaveRecovery));
+        EditDraftStore.Draft record=held.data;
+        if(record!=null){
+            TextView params=text("原版本："+record.version+"\n原页面基线：\n"+excerpt(record.baseline)+"\n\n待核对编辑：\n"+excerpt(record.edited),12,INK);
+            params.setTextIsSelectable(true);panel.addView(params);
+        }
+        body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+    }
+    private void retainRecovery(EditRecoveryState held){
+        if(recovery!=held||busy)return;
+        runIO("正在保留或核对恢复记录…",()->{
+            if(held.entry!=null&&held.data==null){held.loaded(EditDraftStore.recovery(getFilesDir()).load(held.owner,held.entry));return held.entry;}
+            if(held.data==null)throw new IOException("恢复状态缺少内容和有效文件引用；请保留应用数据，未编造已保存状态");
+            EditDraftStore.Draft record=held.data;
+            EditDraftStore.Entry entry=EditDraftStore.recovery(getFilesDir()).retain(held.owner,record.version,record.baseline,record.edited,record.submitted);
+            held.retained(entry);return entry;
+        },value->{if(recovery==held)showRecovery("独立恢复记录已写入并核对。这不表示页面已保存；请查看或明确选择下一步。");});
+    }
+    private void leaveRecovery(){
+        if(recovery!=null&&!recovery.verified){toast("恢复记录尚未写入或核对，请先重试保留；当前内容不会被丢弃");return;}
+        recovery=null;showLibrary("");
+    }
+    private void fillRecoveryQuota(TextView target,String owner,boolean compact){
+        worker.execute(()->{String message;
+            try{EditDraftStore.Usage u=EditDraftStore.recovery(getFilesDir()).usage(owner);
+                message=compact&&u.complete&&!u.near()?"恢复记录余量（本次核对）："+u.remainingFiles()+" 项 / "+u.remainingBytes()+" 字节；新写入仍需核对":EditRecoveryCatalog.quota(u);
+            }catch(Exception e){message="恢复记录余量无法核对；已有记录保留。新写入仍须完整核对，不会跳过保护。";}
+            final String shown=message;runOnUiThread(()->{if(alive()&&target.isAttachedToWindow())target.setText(shown);});
+        });
+    }
+    private static final class RecoveryOwner {
+        final String owner,label;final EditDraftStore.Usage usage;
+        RecoveryOwner(String o,String l,EditDraftStore.Usage u){owner=o;label=l;usage=u;}
+    }
+    private static final class RecoveryRow {
+        final EditDraftStore.Entry entry;final EditRecoveryCatalog.Label label;
+        RecoveryRow(EditDraftStore.Entry e,EditRecoveryCatalog.Label l){entry=e;label=l;}
+    }
+    private static final class RecoveryListing {
+        final EditDraftStore.Usage usage;final ArrayList<RecoveryRow> rows;
+        RecoveryListing(EditDraftStore.Usage u,ArrayList<RecoveryRow> r){usage=u;rows=r;}
+    }
+    private static EditRecoveryCatalog.Current catalogCurrent(Models.Document d,java.util.Map<String,Boolean> proofs)throws Exception {
+        if(d==null)return null;ArrayList<EditRecoveryCatalog.Page> pages=new ArrayList<>();
+        for(Models.Page p:d.pages)pages.add(new EditRecoveryCatalog.Page(identity(d.id,p),p.json().toString(),p.removed,Boolean.TRUE.equals(proofs.get(p.id))));
+        return new EditRecoveryCatalog.Current(d.id,d.title,d.savedSnapshot,!d.archived&&!d.manifestUncertain,pages.toArray(new EditRecoveryCatalog.Page[0]));
+    }
+    /** Same real verifier used for both list classification and explicit load. */
+    private boolean recoveryOriginalVerified(Models.Document d,Models.Page page)throws Exception {
+        RecoverySourceGate.verify(new File(getFilesDir(),"documents"),identity(d.id,page));return true;
+    }
+    private RecoveryListing recoveryListing(String owner)throws Exception {
+        EditDraftStore journal=EditDraftStore.recovery(getFilesDir());EditDraftStore.Inventory inventory=journal.inventory(owner);
+        Models.Document current=null;try{current=store.load(owner);}catch(java.io.InterruptedIOException cancelled){throw cancelled;}catch(Exception unavailable){/* current document status stays unknown */}
+        java.util.HashMap<String,Boolean> proofs=new java.util.HashMap<>();EditRecoveryCatalog.Current snapshot=catalogCurrent(current,proofs);ArrayList<RecoveryRow> rows=new ArrayList<>();
+        for(EditDraftStore.Entry entry:inventory.entries){
+            EditRecoveryCatalog.Record record;
+            try{EditDraftStore.Draft data=journal.load(owner,entry);Models.Page old=strictCheckpointPage(data.baseline),edited=strictCheckpointPage(data.edited);
+                record=new EditRecoveryCatalog.Record(entry,data,identity(owner,old),identity(owner,edited),old.removed||edited.removed);
+                if(current!=null)for(Models.Page page:current.pages)if(page.id.equals(edited.id)&&!proofs.containsKey(page.id)){
+                    boolean verified=false;try{verified=recoveryOriginalVerified(current,page);}catch(java.io.InterruptedIOException cancelled){throw cancelled;}catch(Exception invalid){/* never claim source verified */}proofs.put(page.id,verified);
+                    EditRecoveryCatalog.Page[] pages=snapshot.pages.clone();for(int i=0;i<pages.length;i++)if(pages[i].source.page.equals(page.id))pages[i]=new EditRecoveryCatalog.Page(pages[i].source,pages[i].json,pages[i].removed,verified);
+                    snapshot=new EditRecoveryCatalog.Current(snapshot.owner,snapshot.title,snapshot.version,snapshot.editable,pages);
+                }
+            }catch(java.io.InterruptedIOException cancelled){throw cancelled;}catch(Exception invalid){record=new EditRecoveryCatalog.Record(new EditDraftStore.Entry(entry.token,entry.digest,entry.created,"记录未通过内容核对"),null,null,null,false);}
+            rows.add(new RecoveryRow(record.entry,EditRecoveryCatalog.describe(owner,record,snapshot)));
+        }
+        return new RecoveryListing(inventory.usage,rows);
+    }
+    private void browseRecovery(){
+        if(recovery!=null){showRecovery("请先查看当前待核对记录");return;}
+        runIO("正在核对恢复记录文稿与额度…",()->{
+            ArrayList<RecoveryOwner> owners=new ArrayList<>();EditDraftStore journal=EditDraftStore.recovery(getFilesDir());
+            for(String owner:journal.owners()){Models.Document current=null;try{current=store.load(owner);}catch(java.io.InterruptedIOException cancelled){throw cancelled;}catch(Exception unavailable){}EditRecoveryCatalog.Current label=current==null?null:new EditRecoveryCatalog.Current(current.id,current.title,current.savedSnapshot,!current.archived,new EditRecoveryCatalog.Page[0]);owners.add(new RecoveryOwner(owner,EditRecoveryCatalog.document(owner,label),journal.usage(owner)));}return owners;
+        },value->{
+            @SuppressWarnings("unchecked") ArrayList<RecoveryOwner> owners=(ArrayList<RecoveryOwner>)value;
+            if(owners.isEmpty()){toast("没有编辑恢复记录");return;}
+            String[] labels=new String[owners.size()];for(int i=0;i<labels.length;i++){RecoveryOwner o=owners.get(i);labels[i]=o.label;
+                labels[i]+="\n"+(o.usage.complete?o.usage.count+" 项 · 剩余 "+o.usage.remainingFiles()+" 项 / "+o.usage.remainingBytes()+" 字节":"余量未知 · 不跳过恢复保护");}
+            new AlertDialog.Builder(this).setTitle("编辑恢复记录 · 当前文稿信息").setItems(labels,(dialog,index)->browseRecoveryEntries(owners.get(index).owner)).setNegativeButton("关闭",null).show();
+        });
+    }
+    private void browseRecoveryEntries(String owner){
+        runIO("正在校验记录、当前版本与原图…",()->recoveryListing(owner),value->{
+            RecoveryListing listing=(RecoveryListing)value;ScrollView scroll=new ScrollView(this);LinearLayout panel=column();scroll.addView(panel);
+            panel.addView(text(EditRecoveryCatalog.quota(listing.usage),14,INK));
+            panel.addView(text("标题与页码来自当前文稿，不是历史标签；时间是首次保留时间，去重不更新时间。状态仅为本次只读核对，载入时仍会重新校验完整身份与原版本。记录不自动删除；普通ZIP不含恢复区。参数副本导出不含原图或整本文稿，也不释放额度；达到上限需要另行决定处置。",13,MUTED));
+            final AlertDialog[] dialog=new AlertDialog[1];
+            if(listing.rows.isEmpty())panel.addView(text("没有可列出的记录",14,INK));
+            for(RecoveryRow row:listing.rows)panel.addView(button(row.label.text(),()->{
+                EditDraftStore.Entry entry=row.entry;if(!entry.valid){toast("记录未通过校验，原文件保留："+entry.error);return;}
+                dialog[0].dismiss();runIO("正在重新核对所选独立记录…",()->EditDraftStore.recovery(getFilesDir()).load(owner,entry),data->{
+                    EditRecoveryState held=new EditRecoveryState(owner,(EditDraftStore.Draft)data);held.retained(entry);recovery=held;
+                    showRecovery("这是独立编辑恢复记录；成功保存后的旧记录也可能在此，不会自动重放。");
+                });
+            }));
+            dialog[0]=new AlertDialog.Builder(this).setTitle("只读查看 · 不自动应用").setView(scroll).setNegativeButton("关闭",null).create();dialog[0].show();
+        });
+    }
+    private RecoverySourceGate.State recoveryLoadState(){
+        EditRecoveryState current=recovery;EditDraftStore.Entry entry=current==null?null:current.entry;
+        return new RecoverySourceGate.State(current,document,draft,editorSession,current==null?null:current.owner,
+                entry==null?null:entry.token,entry==null?null:entry.digest,document==null?null:document.id,
+                draft==null?null:draft.id,document==null?null:document.savedSnapshot,generation,screen,navigationCycle,
+                alive()&&resumed&&!stateSaved);
+    }
+    private void loadRecoveryEditor(EditRecoveryState held){
+        if(recovery!=held||!held.verified||held.entry==null){toast("请先保留并核对恢复记录");return;}
+        new AlertDialog.Builder(this).setTitle("核对原版本后载入？").setMessage("会重新读取真实原图并核对哈希，只有原文稿版本、页面基线和原图身份全部一致才打开编辑预览。列表状态不作为载入凭据；页面或原图已变化时，记录继续保留。").setPositiveButton("核对并载入",(dialog,which)->{
+            if(recovery!=held||!held.verified||held.entry==null||busy||!resumed||stateSaved)return;
+            final String owner=held.owner;final EditDraftStore.Entry selected=held.entry;
+            final RecoverySourceGate.Ticket ticket=new RecoverySourceGate.Ticket(recoveryLoadState());recoveryLoadTicket=ticket;
+            runIO("正在重新核对真实原图与原版本…",()->{
+                EditDraftStore.Draft record=EditDraftStore.recovery(getFilesDir()).load(owner,selected);
+                Models.Document before=store.load(owner);Models.Page edited=recoveryEdited(before,record);
+                EditRecoveryPolicy.Identity source=identity(owner,edited);
+                return RecoverySourceGate.verifyAndRead(new File(getFilesDir(),"documents"),source,()->{
+                    Models.Document fresh=store.load(owner);Models.Page checked=recoveryEdited(fresh,record);
+                    if(!EditRecoveryPolicy.sameSource(source,identity(fresh.id,checked)))throw new IOException("原图身份在核验期间已变化，记录未应用");
+                    return new RecoveredEdit(fresh,checked);
+                });
+            },value->{
+                if(!ticket.accepts(recoveryLoadTicket,recoveryLoadState())){
+                    if(recoveryLoadTicket==ticket)recoveryLoadTicket=null;
+                    toast("界面、页面或恢复记录已变化，未载入旧结果；记录保留");return;
+                }
+                @SuppressWarnings("unchecked") RecoverySourceGate.Verified<RecoveredEdit> verified=(RecoverySourceGate.Verified<RecoveredEdit>)value;
+                RecoveredEdit result=verified.value;recoveryLoadTicket=null;
+                if(!EditRecoveryPolicy.sameSource(verified.proof.source,identity(result.document.id,result.edited))
+                        ||!result.document.savedSnapshot.equals(EditorSaveFlow.observedVersion(owner))){toast("核对期间文稿或原图身份又有变化，记录未应用");return;}
+                for(Models.Page page:result.document.active())if(EditRecoveryPolicy.sameSource(verified.proof.source,identity(result.document.id,page))){
+                    recovery=null;document=result.document;openEditor(page,result.edited);toast("真实原图与原版本已核对；仍需审核并保存，记录未删除");return;
+                }
+                toast("当前页面不可用，恢复记录保留，未载入编辑");
+            });
+        }).setNegativeButton("继续查看",null).show();
+    }
+    private void openCurrentRecovery(EditRecoveryState held){
+        if(recovery!=held||!held.verified){toast("请先保留并核对恢复记录");return;}
+        runIO("正在重新读取当前已保存文稿…",()->store.load(held.owner),value->{
+            if(recovery!=held||!resumed||stateSaved)return;Models.Document fresh=(Models.Document)value;
+            if(!fresh.savedSnapshot.equals(EditorSaveFlow.observedVersion(held.owner))){toast("文稿又有变化，请重新核对");return;}
+            recovery=null;document=fresh;showDocument();toast("已打开当前保存版本；恢复记录保留，未套用旧编辑");
+        });
+    }
+    private void exportRecovery(EditRecoveryState held){
+        if(recovery!=held||!held.verified||held.entry==null||activeSaveToken!=null){toast("请先核对恢复记录或处理已有保存请求");return;}
+        new AlertDialog.Builder(this).setTitle("导出私密恢复记录？").setMessage("包含原页面基线、文稿版本、编辑参数和可能存在的识别文字，不含原图，不是可直接恢复的ZIP。请选择可信位置；不会自动分享或删除。").setPositiveButton("创建副本并选择位置",(dialog,which)->runIO("正在复制恢复记录…",()->EditDraftStore.recovery(getFilesDir()).export(held.owner,held.entry,getCacheDir()),value->{
+            if(recovery!=held||!resumed||stateSaved||activeSaveToken!=null){toast("界面状态已变化，本地记录和副本保留，未发起外部保存");return;}
+            EditDraftStore.Export exported=(EditDraftStore.Export)value;pendingExport=exported.file;approvedExportSource=exported.file;approvedExportDigest=exported.digest;approvedExportBytes=exported.bytes;pendingKind="bin";saveExport();
+        })).setNegativeButton("取消",null).show();
+    }
     /** Only the exact current serializer format is accepted; no silent parameter normalization. */
     private static Models.Page strictCheckpointPage(String encoded)throws Exception {
         Models.Page p=Models.Page.from(new org.json.JSONObject(encoded));
@@ -659,6 +982,7 @@ public final class MainActivity extends Activity {
     /** Unambiguous page/title framing prevents stale PDFs from matching a different document state. */
     private String pdfRevision(Models.Document d){StringBuilder key=new StringBuilder("pdf-revision-v3|");pdfRevisionPart(key,d.id);pdfRevisionPart(key,d.title);for(Models.Page p:d.active()){pdfRevisionPart(key,p.id);pdfRevisionPart(key,OcrEngine.key(p));pdfRevisionPart(key,p.cropReview);}return key.toString();}
     private static void pdfRevisionPart(StringBuilder out,String value){out.append(value.length()).append(':').append(value);}
+    private void previewPdf(){Models.Document owner=document;File pdf=recentPdf;String revision=recentPdfRevision;runIO("正在核对 PDF 版本…",()->{Models.Document checked=store.snapshotForExport(owner);requireReviewedCrops(checked);if(pdf==null||!pdf.isFile()||!revision.equals(pdfRevision(checked)))throw new IOException("尚无当前版本的 PDF，请先生成；文稿改动后需要重新导出");return pdf;},value->{if(document!=owner||!revision.equals(pdfRevision(owner))){toast("文稿已改变，请重新生成 PDF");return;}Intent view=new Intent(this,PdfPreviewActivity.class);view.putExtra(PdfPreviewActivity.EXTRA_NAME,((File)value).getName());startActivity(view);});}
     private void reusePdf(boolean share){Models.Document owner=document;File pdf=recentPdf;String revision=recentPdfRevision;runIO("正在核对文稿版本…",()->{Models.Document checked=store.snapshotForExport(owner);requireReviewedCrops(checked);if(pdf==null||!pdf.isFile()||!revision.equals(pdfRevision(checked)))throw new IOException("尚无当前版本的 PDF，请先生成；文稿改动后需要重新导出");return pdf;},value->{if(document!=owner){toast("文稿已切换，请重新选择");return;}pendingExport=(File)value;approvedExportSource=pendingExport;approvedExportDigest=null;approvedExportBytes=0;pendingKind="pdf";if(share)shareExport();else saveExport();});}
     private static void requireReviewedCrops(Models.Document doc)throws IOException{int i=0;for(Models.Page page:doc.active()){i++;if(!page.cropConfirmed())throw new IOException("第 "+i+" 页四角尚未核对。请打开页面，检查四角或选择全图，确认后保存；原图和 ZIP 备份仍可导出。");}}
     private static void requireSavedPageReview(Models.Document doc,Models.Page draft)throws IOException{for(Models.Page saved:doc.active())if(saved.id.equals(draft.id)){if(saved.cropConfirmed()&&draft.cropConfirmed()&&saved.cropReview.equals(draft.cropReview))return;break;}throw new IOException("请先检查并确认四角，然后保存本页；原图副本仍可导出。");}
@@ -883,7 +1207,7 @@ public final class MainActivity extends Activity {
         AlertDialog.Builder dialog=new AlertDialog.Builder(this).setTitle("操作未完成").setMessage(detail+guidance).setPositiveButton("知道了",(ignoredDialog,which)->{if(uncertain&&document!=null&&document.manifestUncertain){if(screen==1)showDocument();else if(screen==2&&!cropping)buildEditor();}});
         if(!uncertain&&e instanceof SaveWriteFailure){String token=((SaveWriteFailure)e).token;dialog.setNeutralButton("重新选择位置",(d,w)->recoverSaveResult(token,null));}dialog.show();
     }
-    private void handleBack(){if(busy){toast("正在保存，请稍候");return;}if(screen==2)leaveEditor();else if(screen==1)showLibrary("");else finish();}
+    private void handleBack(){if(busy){toast("正在保存，请稍候");return;}if(screen==3)leaveRecovery();else if(screen==2)leaveEditor();else if(screen==1)showLibrary("");else finish();}
     // API 33+ uses the platform callback above; this override handles API 26–32 only.
     @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed(){handleBack();}
