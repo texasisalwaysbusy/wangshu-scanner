@@ -1,0 +1,688 @@
+[
+  {
+    "path": ".gitignore",
+    "bytes": 102,
+    "sha256": "28ed1fd74f447dfc36f7e16abda6836a4f048ab2bf9b5c96adca864416739034",
+    "git_blob": "93519180b29a670636a78b65e79aac5c555a805c",
+    "status": "unchanged"
+  },
+  {
+    "path": "LICENSE",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "status": "unchanged"
+  },
+  {
+    "path": "README.md",
+    "bytes": 3635,
+    "sha256": "ba5f8b6a34917e19cc512679dff50a53f8a3d954738f54d06869fc5ba0563963",
+    "git_blob": "8846bf6fdb85835b74e3671d6ce76ba1fe7aac42",
+    "status": "modified"
+  },
+  {
+    "path": "THIRD_PARTY.md",
+    "bytes": 1049,
+    "sha256": "de17f0c1c8f2a6fee0fad91b7d21bdeace7ff8a1c4a14e6836cd5f3d92c6d2ba",
+    "git_blob": "592bcaada3201b76cc200a8e06661b49f693dc99",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/build.gradle",
+    "bytes": 906,
+    "sha256": "c04ec5062a393e6c3119b2a3a2cc083f622dccb7e2fe9ff3216d4c3add76dbc3",
+    "git_blob": "a5e790f5688a150016f28d215f1cae83b122f477",
+    "status": "modified"
+  },
+  {
+    "path": "app/src/main/AndroidManifest.xml",
+    "bytes": 1929,
+    "sha256": "8f4fd319666d14f6271d6738d61351266eb6977d5de551621168884a62e480c5",
+    "git_blob": "608ae6a9777942f544ef15bcf54b06c213a68d8c",
+    "status": "modified"
+  },
+  {
+    "path": "app/src/main/assets/notices/ANDROID-RUNTIME-DEPENDENCIES.txt",
+    "bytes": 410,
+    "sha256": "74ae34ba0d67c0ca7aeb446b106a69a764fc4fa081b3dabb082d6308c7d66439",
+    "git_blob": "51f4d56cad0281922711f34a41c733f6a37d6e61",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/LLVM-NOTICE.txt",
+    "bytes": 130424,
+    "sha256": "f96f763beb66a7ba7a667647fc64c0226ace875e590c831fdd9579ec1c1d91e1",
+    "git_blob": "b051002f8a69f553700ee907ccd3c56d9a2c6c8e",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/Leptonica-LICENSE.txt",
+    "bytes": 1521,
+    "sha256": "87829abb5bbb00b55a107365da89e9a33f86c4250169e5a1e5588505be7d5806",
+    "git_blob": "73d44c601c0746534128804c3fb0b93772897f82",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/PROJECT-MODIFICATIONS.txt",
+    "bytes": 331,
+    "sha256": "6b2d5b160f8aee9b4c06a817ac8f9e98fac652f2d8bac00d1a7b3027c17fb59a",
+    "git_blob": "0b530e1efc2f41b89ce79505db1699889eb270ed",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/Tesseract-LICENSE.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/Tesseract4Android-LICENSE.txt",
+    "bytes": 11357,
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "git_blob": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/libjpeg-README.txt",
+    "bytes": 18719,
+    "sha256": "7c25493a9f64fed34d01445467341bda77bc1cdbeccbe33558659ef173fb9ff2",
+    "git_blob": "0f4ee1522875ca031c08cfaf01b3c33746938ff2",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/libpng-LICENSE.txt",
+    "bytes": 5345,
+    "sha256": "16d9daaafbf63a31a5bdc91d4600972548fef5aaa1244202393288dbd079c49a",
+    "git_blob": "ea6df986cb6a743738771689876215dfdd81dcc5",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/assets/notices/tessdata-fast-LICENSE.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "git_blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/BatchFence.java",
+    "bytes": 9111,
+    "sha256": "a6d52c886f0175c57a869e990f9ede79baf5612b5282f1d433e0eb2ed7bb6fbf",
+    "git_blob": "27cd558b5b511774886b0312ff4d354a3f7598fa",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/CameraInbox.java",
+    "bytes": 3355,
+    "sha256": "63c4d5573ae95d07ee227ee5f5b0b379038287d8643a6f6292f60ba7583b8683",
+    "git_blob": "d35c96c1f8ac53fd69a03d7ea0556efbe13ab3a4",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/CaptureActivity.java",
+    "bytes": 31866,
+    "sha256": "91b28c652a185dab2907c9549f925833538467a25e38014a14636d52900d973d",
+    "git_blob": "199c31115c09105195c5ad16b6ee40f7f8d62ccb",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/CaptureBatch.java",
+    "bytes": 24461,
+    "sha256": "f6c0496f4d568a4202fbad8a4d665df338201c9f62e133fa9f08ed81b48c5362",
+    "git_blob": "e3f443a83956ae6c27d25db2c1fc193d32a1b976",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/CropView.java",
+    "bytes": 5503,
+    "sha256": "ff41e64f85e6aea9a8973933b699fbc80cd50112ec1b79fdb11c2cbbb48d96a7",
+    "git_blob": "18b5ccc63abd324517fbd1d3fdbd2b6e8c08524e",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/DocumentMutations.java",
+    "bytes": 8162,
+    "sha256": "57042ef68c98b8dc28dd3e596eb9eb3a4cbfd28566e8023834c564510e515d4a",
+    "git_blob": "6b600a643c058e38150b6744dab225f14e984d88",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/EditDraftStore.java",
+    "bytes": 14831,
+    "sha256": "24356f8f45e4f71b7fcd738aeae77cd73bc3b9c2035eb992757952e8b625ab79",
+    "git_blob": "6a03e664639d40827532a6849e1f720029132d9b",
+    "status": "modified"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/EditRecoveryCatalog.java",
+    "bytes": 5709,
+    "sha256": "89e0994f6618120a717d128f967b1aed77882cbffd4ba43eebcc9844143d1bde",
+    "git_blob": "b9119409c2b688f06df4fe08041f9606eba2b739",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/EditRecoveryPolicy.java",
+    "bytes": 1559,
+    "sha256": "76ff62f81a036d0937cb12e9dd7d29e05fc41d9d54245763453281bcb2bdbe24",
+    "git_blob": "b531a6571d16a4d2439d59ebe2ca54be6bf7d078",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/EditRecoveryState.java",
+    "bytes": 2341,
+    "sha256": "46ae7302d845f3e890fd2a19f3965e28a7d41a35857cd4fd8e6ebe5c1d1a84e0",
+    "git_blob": "c3bf0abab08981ab750c75efc8ca4f4321179302",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/EditorSaveFlow.java",
+    "bytes": 6385,
+    "sha256": "d70ee20dfc4bfbfbe5f3e5ed69eadd9e826980822e804f51cc6cabdca3bede7e",
+    "git_blob": "694fe5c23e2730c30912cbff0542a16bf74bea8c",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/Exporter.java",
+    "bytes": 5020,
+    "sha256": "b67844a2763778939fe66e30496d1b4d47e41e7e469cf248467fbbd855890600",
+    "git_blob": "1d19b4374dbbde9d360bf40cc408e681bad75994",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/MainActivity.java",
+    "bytes": 137680,
+    "sha256": "2a00190b31829d773effe32f9d13f2425140551a1612b165a53cf87981b8b501",
+    "git_blob": "725d16aac65029ee47af8a93e058ded64b65b09d",
+    "status": "modified"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/MainThreadWatchdog.java",
+    "bytes": 5184,
+    "sha256": "6c4453b6016014149bc4cf3291c29c0223d9848f87795160e50a30d8cb5b71e6",
+    "git_blob": "dded46a6f60e703ed9c6da5557dd249ceca5a778",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/ManifestFence.java",
+    "bytes": 5490,
+    "sha256": "33163ddf210f78f61e5094b46e14b2b998b1522a0c666fbbd342f2fb9663d25b",
+    "git_blob": "edb5eee6e6a715b9f24bc9d82fc9a7d2114202a4",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/ManifestRecovery.java",
+    "bytes": 13989,
+    "sha256": "7539144c036d801378af2a35332e4356f11f557a1cca3f905eac63e18bd4a9bd",
+    "git_blob": "d849162769539afad3daa08baade02fb3058a44a",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/Models.java",
+    "bytes": 3905,
+    "sha256": "afc32a25d849ff48ce8d037b5d8454f56378103116d3388003284973c1b237ba",
+    "git_blob": "a10e5945991848181229f448f27a121399ac30ec",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/OcrAssetIntegrity.java",
+    "bytes": 7040,
+    "sha256": "998f3733692ecd3d2d8fbe23df1190b3d5c7a9f5ff88b613d163fb97b5272739",
+    "git_blob": "b9cd3ac54c9eb772ab88ce7bd609956285847b11",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/OcrEngine.java",
+    "bytes": 6041,
+    "sha256": "c9880a7a7bd417ad89ba5f41446e3a9c23741fbb9b149f8a7c5a973adc33ba4b",
+    "git_blob": "1214c602703d3c89a15476f226ab9c32c467ff37",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/OperationOverlay.java",
+    "bytes": 3562,
+    "sha256": "7ea27a8e1070fa29e233fba1b0d0383a069371e026bd9b92c1ce54f9b6f7df5e",
+    "git_blob": "0c8f3407d29174a445ad9d4f61c40ca3076e22e8",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/PdfPreviewActivity.java",
+    "bytes": 7178,
+    "sha256": "1807a5716d566149b34fc3833a4ad036a6e009dac19d8f358d76946b29bb2fa5",
+    "git_blob": "0de90867aca1df5eee2ad03908146bab060c6c37",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/RecoverySourceGate.java",
+    "bytes": 6692,
+    "sha256": "93ce0571ec9bbef9764798f13f4709ad8fb19058921642807ee888b8c18f63b5",
+    "git_blob": "77ddbe6829a8019d71cfdb88b9fba033f56a64a7",
+    "status": "added"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/Renderer.java",
+    "bytes": 9891,
+    "sha256": "d81be33ce0fa65c97cdfa9fd58be99f49aa154da73412b9bf0f43fb84bcd856b",
+    "git_blob": "295b652eb751875013af6d0df6104e7e3e0ebe67",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/RestoreIntake.java",
+    "bytes": 9488,
+    "sha256": "bdb4fcf08966ce9d824fbf3910f8d38e4a7af2129c1e396f8bd3805de8cac199",
+    "git_blob": "b5fe9369062b9ed6140ca61992fb7b0d6c53693a",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/SaveJobStore.java",
+    "bytes": 13725,
+    "sha256": "9729b0d31f3b925b8c7fbacff0ce20c72f14a951a2c572469465590293db06ba",
+    "git_blob": "ba044b6815a01894177482b31a78cadff0cd0df5",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/SavePickerActivity.java",
+    "bytes": 5542,
+    "sha256": "2356ec9f57a778b6640c9e8b1ed0a5ac9801fbdee0baf271f6dd82852b212651",
+    "git_blob": "ce21e26d88622d724dbac23b17422b245ba24cda",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/ScanProvider.java",
+    "bytes": 2645,
+    "sha256": "5800e894d4fd772462dadbce4f9518d5b775a59e1183772bd393978d6b63aad3",
+    "git_blob": "bf418e283b06ed4296452ceeaeea9d79fd190a12",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/Store.java",
+    "bytes": 32050,
+    "sha256": "835f1bf2a23d8ad27895b22cbd2df9672f1ec5c8c33c56038cfb83838272814b",
+    "git_blob": "a348bfc7111477922d09e33be550551800513cef",
+    "status": "modified"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/StrictJsonValidator.java",
+    "bytes": 4570,
+    "sha256": "9c92178e96a28af18368e847e7378b34a38015122f00d6de6abccf8cd14c9a68",
+    "git_blob": "0745f1947da920874b96803e631c03428df38e09",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/SystemBars.java",
+    "bytes": 1205,
+    "sha256": "e7339bd57155eab46d7b5945d5da3b602af6de44ff3522139ef54af355cab147",
+    "git_blob": "2b515272eb18208247fe8fb9e1e43e6af4132006",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/Enhance.java",
+    "bytes": 3112,
+    "sha256": "d60ee8c58e891da9678e8b9507782a60600c4f46ac3d9daa8b7420b5ff3668b0",
+    "git_blob": "39be6e61aa80379a5534df3d6ae9998ed6d0d15b",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/Geometry.java",
+    "bytes": 2990,
+    "sha256": "ec02c25949d9d3094c94a2cc9b0c1797cf69779b70322a1962e8562b3f7dc8a4",
+    "git_blob": "e2f0f91aa3fea9b45263c8ce3af1b6a54a31144e",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/PageDetector.java",
+    "bytes": 6107,
+    "sha256": "658cab162c47cf141ad2781ffafa439d1198c1c6700f5183513472f2824afd36",
+    "git_blob": "49b6fa5f8ecaf4c660f5848a26facf5bbe91a09c",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/RegionRenderPlan.java",
+    "bytes": 5496,
+    "sha256": "592152cbb5bc32ae8559f1ae7105676875d7084ed216e777c03e7e3413c09699",
+    "git_blob": "1e4ab877dacb67394ab3fa1604b75793acb31b9d",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/StreamingPdf.java",
+    "bytes": 3007,
+    "sha256": "862b18f36d5dedcea89bd03a95ca61d19ca6a448d333b14be2b74a46a0fd4cab",
+    "git_blob": "89db78688a9a2004c1c412a202565fc8198de40b",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/java/org/wangshu/scan/core/SurfaceLifetime.java",
+    "bytes": 1553,
+    "sha256": "c5e116291baebaceef4c13c41413945e2207256712bcb7f51c6fb81f814d1fba",
+    "git_blob": "af295139e673793149d7432ff0c11c7acd7720ad",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/drawable/ic_scan.xml",
+    "bytes": 517,
+    "sha256": "0f5a71ececc116f074aa40644994f1908b29513d32491adff5d1c1ce15c14579",
+    "git_blob": "7612fc8c7c7859aa09cf6cb83ed80a2940db407e",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values-night-v27/styles.xml",
+    "bytes": 135,
+    "sha256": "a89edbe622dcb2ef30f6f487e650b8a0c36150dd660785d488d292e515123abc",
+    "git_blob": "bd279b6c8fcf744f727ef825442fe4b56f63f4fd",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values-night/colors.xml",
+    "bytes": 461,
+    "sha256": "f3e0e694aed97b1065864461411dbf869c6bd134154045f34ce21d3f851e0580",
+    "git_blob": "3c731f6fdca6c7b651233b0c3604f919dff86d22",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values-night/styles.xml",
+    "bytes": 1119,
+    "sha256": "8653bf349ded9822690a7b9b7cd52e02af158202713a5064c2745b30d74d5cab",
+    "git_blob": "6021042c37ff1c640c0bd987b103bfbd1d21f8c9",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values-v27/styles.xml",
+    "bytes": 154,
+    "sha256": "ec194a97c90c5475a1cdfcacc3cc6131c8b1f427f856c76a1ed97d0a5d6197cf",
+    "git_blob": "7c8ea55a7a3c39d5154dd68210903b31ee6f46be",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values/colors.xml",
+    "bytes": 1299,
+    "sha256": "8935d8ef114b1553559f149fba9eff6d56a9c8ef52a3d334d0ef5646771c7eb1",
+    "git_blob": "96516a216ddb00f337e026bf39d0a00f47a7156d",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/values/styles.xml",
+    "bytes": 1176,
+    "sha256": "d015f1a2a6197ab0e18759553dfad17a18c38d874bbc45b95a646ff670764901",
+    "git_blob": "79b899240d11b68007e1635df335903fe649b58b",
+    "status": "unchanged"
+  },
+  {
+    "path": "app/src/main/res/xml/data_extraction_rules.xml",
+    "bytes": 578,
+    "sha256": "73c331d855efe65a67ebd016c825ef2b28a898e4acb2c654dcb9215c5684153a",
+    "git_blob": "abcf13afb7dd6bd7e1712417f7e64bf37b5bc7d5",
+    "status": "unchanged"
+  },
+  {
+    "path": "build.gradle",
+    "bytes": 132,
+    "sha256": "a82f7ecf5dffa918b83abdf937ee46cd1fb24ff7a0dcfd6bd084fc0ff15cace5",
+    "git_blob": "209879f4a51778f978085cab5beac30ad4daabb5",
+    "status": "unchanged"
+  },
+  {
+    "path": "docs/DEVELOPMENT.md",
+    "bytes": 11021,
+    "sha256": "fa929024644975c8acfd5f8ed52f268afa92ee79b0942df0cf1082f452a5e6c9",
+    "git_blob": "3f4e4e3edf70e0f017c04450c26537e2e7caab7f",
+    "status": "modified"
+  },
+  {
+    "path": "docs/OCR-DEPENDENCIES.json",
+    "bytes": 2020,
+    "sha256": "0a84d29d346a856c5efade1f95307024d5b4493c8d37cbe1fad6e6e2f75ef124",
+    "git_blob": "51e4cb57ef084ed16e06388363383187d69912ec",
+    "status": "unchanged"
+  },
+  {
+    "path": "gradle.properties",
+    "bytes": 159,
+    "sha256": "5018dd74c411490749740415fefca41220645397caa7c92c1b12977fe21552cb",
+    "git_blob": "1b307dd069126f6e75b9725fadc35fbe519aa2ce",
+    "status": "unchanged"
+  },
+  {
+    "path": "ocrnative/build.gradle",
+    "bytes": 1329,
+    "sha256": "44a9adbe3d674a913722a064e7aab07caa3ebbd8f58cfb88a4d98c094137522a",
+    "git_blob": "151696c4f12c60e097945e2c9ace9b699c5fb524",
+    "status": "unchanged"
+  },
+  {
+    "path": "settings.gradle",
+    "bytes": 291,
+    "sha256": "8049fc41fee8c8253c1d9ec5f7b06d82cd36c79d1b4bc4a2869a7c8bab1bf0a1",
+    "git_blob": "cc60b38262de08473c66468fade174c0fbdfd962",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/EditorSaveFlowRaceTests.java",
+    "bytes": 3177,
+    "sha256": "088de23ab0a6b8203cdbdbb7462cc4258dbb287041daf692c01ccabe3ff09d56",
+    "git_blob": "200caa87b2a102306541047cf4c0d386d6fb932a",
+    "status": "added"
+  },
+  {
+    "path": "tests/EditorSaveFlowTests.java",
+    "bytes": 9115,
+    "sha256": "a9c89811fff236d89ecb4504dd56544412af79ab0ee966f8102ff03e56db663f",
+    "git_blob": "29e393245c4d9973b9dfb2c5491893a6c5f553cd",
+    "status": "added"
+  },
+  {
+    "path": "tests/EnhanceReferenceTests.java",
+    "bytes": 2332,
+    "sha256": "fb9d9b7eb827cc9773d9ce40a913bc2e9762364fe7bcc36c0f1e6385c2dd7694",
+    "git_blob": "a8603ed4935d56ca95804a6466b00544d2cdf061",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/RegionRenderPlanTests.java",
+    "bytes": 7219,
+    "sha256": "99cb458fd75a7c97761d1656048542505349a5b027ddaa509d2d4acf4e157078",
+    "git_blob": "a83f984bc5268827e967dc19c9f1d759f8e80115",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/SurfaceLifetimeTests.java",
+    "bytes": 3140,
+    "sha256": "d2d2c4b879f7233baece85d5284edc092faaebd3b27351b47b8bccd5f250b7d3",
+    "git_blob": "08d993047177ae67df8b0a8e2921a16e0ca48668",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/Vc4RecoveryTests.java",
+    "bytes": 11292,
+    "sha256": "8cb689a6f4fedcc4f77fef3aa0dc78fb6b2038735c4c1a9f67b5631429239c0f",
+    "git_blob": "5fb0d718ec7a9e3a2e524228c0cab79da0bbfbfe",
+    "status": "added"
+  },
+  {
+    "path": "tests/Vc5RecoveryCatalogTests.java",
+    "bytes": 10654,
+    "sha256": "876de9644cf46fb1f36c16b61d8f5d67a38c5e947592cb070e83018755e744e2",
+    "git_blob": "528b1ae9690a26bf32135cdaba44fd09f647c843",
+    "status": "added"
+  },
+  {
+    "path": "tests/Vc6RecoverySourceTests.java",
+    "bytes": 11123,
+    "sha256": "e02d04cff1919dbf2bb973c536058d253c83bb943401a3beda5c9a233a453733",
+    "git_blob": "24d54c8aabb2151137fbcd44460266707fceba9e",
+    "status": "added"
+  },
+  {
+    "path": "tests/host/IntakeHost.java",
+    "bytes": 3138,
+    "sha256": "550eac83390d36f82dd565173d15e43eef29f82575b0e9accfffeb5a6be246a3",
+    "git_blob": "ab2eef0df33d1f2b88d3ad7de89bc8350ca35069",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/OcrAssetsHost.java",
+    "bytes": 2476,
+    "sha256": "b19b78d3d974a69f8b78927d6dbb929f5829d11ca2b07b4adccf27c696b8e1eb",
+    "git_blob": "00684fbbdec2822fa56611d3bb20ce3f144f9888",
+    "status": "modified"
+  },
+  {
+    "path": "tests/host/SaveExistingHost.java",
+    "bytes": 5376,
+    "sha256": "3f163d02541e07a2157bfc6255c0fc8f32078a95315975ce227962b6cc414abd",
+    "git_blob": "05bcbb57e92d36c75f57d2cc85b8105fa3ed8dd6",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/Utf8Green.java",
+    "bytes": 1565,
+    "sha256": "1f4e15db313f10562af7e442476acf87f6e0b2802a14834758d78a8445292a95",
+    "git_blob": "41c21f0ee83155fac516a6982ad27c6005d2ecf0",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/capture_lock.py",
+    "bytes": 4674,
+    "sha256": "af1545041e6bacff7221ec69d268e537cf9f3d574d748bc517b1378cc74c13df",
+    "git_blob": "e8ef20542388bb1e99907481e5e761834b10c3c9",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/draft_ui.py",
+    "bytes": 10266,
+    "sha256": "20653cbc3d427cafbcc25e9b5e98482388857497b6e53416966454ae8185c09d",
+    "git_blob": "c7e6f158aa7207fbb16b5e746c7190500d327685",
+    "status": "modified"
+  },
+  {
+    "path": "tests/host/edit_draft_gates.py",
+    "bytes": 4208,
+    "sha256": "d1426495c6e371f2dee51b598bb0125fc9a772ada6680a31201c736667d068c3",
+    "git_blob": "dbc6cea0b9215ebbf2d4884c93f2aa969218e2a4",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/edit_draft_save.py",
+    "bytes": 5088,
+    "sha256": "f06c60acea3eb19bf385828936f44d98085e39f53f1d9449793ecf5ac6e39a23",
+    "git_blob": "c60416239adfabf44d510b0ac1ca4d5294e17b7d",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/edit_draft_store.py",
+    "bytes": 9756,
+    "sha256": "b3330a31038f934d7bfba5d0e23f75b105bbedf6cd93531432587575125eff01",
+    "git_blob": "1924730df2ba6aeeab6f475f2d53291c5288f762",
+    "status": "modified"
+  },
+  {
+    "path": "tests/host/geometry_small_crop_host.py",
+    "bytes": 3011,
+    "sha256": "43ae6bd49df75cd50de22e5dbfe2633e99e7bcd173c36f9541e69920f7f666ca",
+    "git_blob": "1d7e5f018c77fc5afc3ae139d0e7aa5ab1945268",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/helper_files.py",
+    "bytes": 2515,
+    "sha256": "9351ec79ded73b8dc81b9fa52f1c58421ae3cf04b12143ff321c18ae0c5efcb0",
+    "git_blob": "64307a21a0adeb2c204b74e78fe59b4fae51be63",
+    "status": "modified"
+  },
+  {
+    "path": "tests/host/jpeg_import_actual_host.py",
+    "bytes": 4583,
+    "sha256": "8be4341a787aba18596d8f86f90106d90d13ab9eab7cdd003decad834f01b4ee",
+    "git_blob": "ea896c5e572a05c57660c097092183b0fca27e30",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/ocr_key_host.py",
+    "bytes": 3290,
+    "sha256": "b4ec7fd451698097426fc2a63b221b40d711003b2dfb92e3101eeaf1041821c6",
+    "git_blob": "1d2431a1b66e190c441956880eabc157022b3494",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/ocr_null_host.py",
+    "bytes": 3827,
+    "sha256": "bde6424b8401adcae8c21a014e43b6258032f627eda465a79105d6ec05d905b8",
+    "git_blob": "9d7e94945117df4226119db7dbec6cd238e36012",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/page_detector_shadow_host.py",
+    "bytes": 3427,
+    "sha256": "84c208f95ba9e5dae4a9bc64584459928187edd09e90e0600bd45c55056fc8fc",
+    "git_blob": "c28051555466c00fbf86289095ffa5631eb5d766",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/pdf_revision_host.py",
+    "bytes": 2813,
+    "sha256": "85cef9eb9c8622e9110bc7b7370e0e497ceba67c2307519e37feade159b64de3",
+    "git_blob": "e03c99a509abf8796790dbdc54be9fe4ed54947e",
+    "status": "modified"
+  },
+  {
+    "path": "tests/host/production_recovery.py",
+    "bytes": 2038,
+    "sha256": "a6f086d00eb4ade8ce50b67c7afb9e3653a8ed4e0fbe2e5c53e6c3739311c552",
+    "git_blob": "692f3a7fad9061b3173dbb94cd65c6da9f36affe",
+    "status": "added"
+  },
+  {
+    "path": "tests/host/storage_progress.py",
+    "bytes": 16070,
+    "sha256": "a14bf03f86c0208e709feb1bba8e0c7dc013a626846f9637bcc4ae17e99304a6",
+    "git_blob": "b237ddd85fc952adf6bde0914f5eb54372eff2c0",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/support.py",
+    "bytes": 1201,
+    "sha256": "5c2e891edfab52d3cf92ee954172afc737647cca2979697a05c82b1fa1591808",
+    "git_blob": "d12f6a1ce7a18f6d8f7127b6ffc8fa6bc7e93b36",
+    "status": "unchanged"
+  },
+  {
+    "path": "tests/host/zip_verified_restore_host.py",
+    "bytes": 8648,
+    "sha256": "3008a4e0cace284794e4e8e9aa2bedc837d4b9be13a78e3d255be844f54f69de",
+    "git_blob": "4ac9ca232780e02822cb947c73426f225960b3de",
+    "status": "unchanged"
+  },
+  {
+    "path": "third_party/patches/tesseract-cjk-spacing.patch",
+    "bytes": 5450,
+    "sha256": "159553382fe90ef70c69d4729cf0da71e2eddf93d7423f0b69714e28c4f19169",
+    "git_blob": "cce1907c853f73614316a00d3b20c44eede1070d",
+    "status": "unchanged"
+  },
+  {
+    "path": "tools/inspect_edit_draft.py",
+    "bytes": 3736,
+    "sha256": "6d2d19a672d6a4c82f038103551016cb64e42571f7975094dd711d53856bf863",
+    "git_blob": "f434abfdc0a98f28209c175dd2b06fb1c44bbe5c",
+    "status": "modified"
+  },
+  {
+    "path": "tools/prepare_ocr_source.py",
+    "bytes": 2020,
+    "sha256": "345ceccf48a0664630998e56a1dcf02d27131e43854878437c6cc949da4d05d6",
+    "git_blob": "7d982a2a851323b5a7970dcb2fff43174d85301b",
+    "status": "unchanged"
+  },
+  {
+    "path": "tools/test_host.py",
+    "bytes": 4523,
+    "sha256": "b0286ec9119bec1f3bcdba08f6e33774cab1415ad2a495efae56a2f315b74b8f",
+    "git_blob": "a2b686329d3f72c4187aef0ede6ef3032e16ecce",
+    "status": "modified"
+  },
+  {
+    "path": "tools/test_pdf_preview_contract.py",
+    "bytes": 10658,
+    "sha256": "1e6a6887d907a6358f6c0ea9abac1d6cfbdfb6b71b9703dc200b7f66d6022371",
+    "git_blob": "269a414be89d25918bccf8d1a80c755f4a49a885",
+    "status": "added"
+  }
+]

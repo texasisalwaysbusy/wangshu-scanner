@@ -1,0 +1,511 @@
+{
+  "schema": 1,
+  "source_commit": "f5423b0646d232a1b27b3b4ed6ed139408baa34b",
+  "source_tree": "099c2401b35c3fa556812fea4d3d09f438ff0ab2",
+  "source_files": "source-files.json",
+  "host_platform": "windows-x86_64 evidence only",
+  "versions": {
+    "Java": "17; observed17.0.19+10",
+    "Gradle": "8.13",
+    "AGP": "8.13.2",
+    "compileSdk": 36,
+    "targetSdk": 36,
+    "minSdk": 26,
+    "platform_revision": 2,
+    "build_tools": "35.0.0",
+    "NDK": "27.2.12479018",
+    "CMake": "3.22.1 (Google build3.22.1-g37088a8-dirty)",
+    "Tesseract4Android": "4.9.0",
+    "Tesseract": "5.5.1",
+    "Leptonica": "1.85.0",
+    "IJG": "9f",
+    "libpng": "1.6.48",
+    "ExifInterface": "1.4.2",
+    "Annotation_declared": "1.3.0",
+    "Annotation_app_resolved": "1.8.1/annotation-jvm1.8.1"
+  },
+  "files": [
+    {
+      "id": "archive:gradle-8.13-bin.zip",
+      "root": "downloads",
+      "relative": "gradle-8.13-bin.zip",
+      "required": true,
+      "bytes": 136983045,
+      "sha256": "20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78"
+    },
+    {
+      "id": "archive:Tesseract4Android-4.9.0.tar.gz",
+      "root": "downloads",
+      "relative": "Tesseract4Android-4.9.0.tar.gz",
+      "required": true,
+      "bytes": 41337000,
+      "sha256": "4569f9093d641d13188ba2dd36a74396661eaa3f9e44637ff1cac9a36076a20e"
+    },
+    {
+      "id": "archive:build-tools_r35_windows.zip",
+      "root": "downloads",
+      "relative": "build-tools_r35_windows.zip",
+      "required": true,
+      "bytes": 59878107,
+      "sha256": "5753c679a1b90bcf6fbc9945a2ce39dfb9e74f1df0831a1e1866ae5b594326f0"
+    },
+    {
+      "id": "archive:android-ndk-r27c-windows.zip",
+      "root": "downloads",
+      "relative": "android-ndk-r27c-windows.zip",
+      "required": true,
+      "bytes": 781511249,
+      "sha256": "27e49f11e0cee5800983d8af8f4acd5bf09987aa6f790d4439dda9f3643d2494"
+    },
+    {
+      "id": "archive:cmake-3.22.1-windows.zip",
+      "root": "downloads",
+      "relative": "cmake-3.22.1-windows.zip",
+      "required": true,
+      "bytes": 16116742,
+      "sha256": "c9a9d568452a20cf27d703cb21ef9529dd67bda6be048c4d4b884acb3ac3a2b8"
+    },
+    {
+      "id": "archive:platform36",
+      "root": "downloads",
+      "relative": "platform-36_r02.zip",
+      "required": true,
+      "bytes": 65878410,
+      "sha1": "2c1a80dd4d9f7d0e6dd336ec603d9b5c55a6f576"
+    },
+    {
+      "id": "gradle:bin/gradle.bat",
+      "root": "gradle",
+      "relative": "bin/gradle.bat",
+      "required": true,
+      "bytes": 3037,
+      "sha256": "6bdf63d10443cf26eb06a8be623483a9c4348793a48238fa4d72aef260ea9f97",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "gradle:lib/gradle-launcher-8.13.jar",
+      "root": "gradle",
+      "relative": "lib/gradle-launcher-8.13.jar",
+      "required": true,
+      "bytes": 325108,
+      "sha256": "56a30262647231bf3ab30b2bf090f5ecacff9329d3f1af1a1de73fd1ab4c64b4",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "gradle:LICENSE",
+      "root": "gradle",
+      "relative": "LICENSE",
+      "required": true,
+      "bytes": 23622,
+      "sha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "gradle:NOTICE",
+      "root": "gradle",
+      "relative": "NOTICE",
+      "required": true,
+      "bytes": 868,
+      "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:platforms/android-36/android.jar",
+      "root": "sdk",
+      "relative": "platforms/android-36/android.jar",
+      "required": true,
+      "bytes": 27768026,
+      "sha256": "d9eb9da824d9e247a352f570f01e1169e725b2954bca9e283a71786c59b59f9a",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:platforms/android-36/core-for-system-modules.jar",
+      "root": "sdk",
+      "relative": "platforms/android-36/core-for-system-modules.jar",
+      "required": true,
+      "bytes": 1464749,
+      "sha256": "4afd3df39082ca1ca32a1effeaff7971d878e75bd01a68a4205c105deec4c559",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:platforms/android-36/source.properties",
+      "root": "sdk",
+      "relative": "platforms/android-36/source.properties",
+      "required": true,
+      "bytes": 257,
+      "sha256": "72291ff6611dbfc46fdfb6de2821c4a62c87befa5200713847eda426e3a501c2",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:build-tools/35.0.0/aapt2.exe",
+      "root": "sdk",
+      "relative": "build-tools/35.0.0/aapt2.exe",
+      "required": true,
+      "bytes": 4740896,
+      "sha256": "cbfe5deda5f7074ce47b6f33818b456ee8046a076a11af13e29c837d3c80c564",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:build-tools/35.0.0/d8.bat",
+      "root": "sdk",
+      "relative": "build-tools/35.0.0/d8.bat",
+      "required": true,
+      "bytes": 3156,
+      "sha256": "ccc279cdc020fc20cb7889d829b9dc36a462ce4fca8ac713088f6be100b714d0",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:build-tools/35.0.0/apksigner.bat",
+      "root": "sdk",
+      "relative": "build-tools/35.0.0/apksigner.bat",
+      "required": true,
+      "bytes": 3233,
+      "sha256": "549dd0028b0314a5112d6b56e2de7800e713f297da4508b513a735546e52ce38",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:build-tools/35.0.0/source.properties",
+      "root": "sdk",
+      "relative": "build-tools/35.0.0/source.properties",
+      "required": true,
+      "bytes": 63,
+      "sha256": "084847d70abc41284feee7ea717e7c92eab0d1be05f048c27445a359cfe109d8",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:ndk/27.2.12479018/source.properties",
+      "root": "sdk",
+      "relative": "ndk/27.2.12479018/source.properties",
+      "required": true,
+      "bytes": 108,
+      "sha256": "70f1c5165e6d997b18782a49cff71da7a3caacd0c4cd811da24c43359fb83cf6",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:ndk/27.2.12479018/build/cmake/android.toolchain.cmake",
+      "root": "sdk",
+      "relative": "ndk/27.2.12479018/build/cmake/android.toolchain.cmake",
+      "required": true,
+      "bytes": 10343,
+      "sha256": "22c1f80acd4a272be56b108b97320197046f407412757d3651c098327ea59a60",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:cmake/3.22.1/source.properties",
+      "root": "sdk",
+      "relative": "cmake/3.22.1/source.properties",
+      "required": true,
+      "bytes": 70,
+      "sha256": "3f61a0382a6c9d14b1d2bbef580f5c058b9281babbc0d36b18e5c36aa9a0b5dc",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:cmake/3.22.1/bin/cmake.exe",
+      "root": "sdk",
+      "relative": "cmake/3.22.1/bin/cmake.exe",
+      "required": true,
+      "bytes": 9819992,
+      "sha256": "41d609bae2a65a9a8e2060bb222d6e031d33c0546054d354137eb490933cb8ac",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "sdk:cmake/3.22.1/bin/ninja.exe",
+      "root": "sdk",
+      "relative": "cmake/3.22.1/bin/ninja.exe",
+      "required": true,
+      "bytes": 554840,
+      "sha256": "d5d6705439aac3162ff6cfb1509246cdbbecaf9d10d7c846713af2c07d8d7ee8",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:release",
+      "root": "jdk",
+      "relative": "release",
+      "required": true,
+      "bytes": 1094,
+      "sha256": "c03ef2598101dc0b1c9ca5fc7d3b4474f0172689b5a2850e3cee906da822fbe6",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:bin/java.exe",
+      "root": "jdk",
+      "relative": "bin/java.exe",
+      "required": true,
+      "bytes": 50344,
+      "sha256": "b3afe83e1ab067da4c56f1a7b2ba4c14ec832d694333f35b2b45178e9ac596ef",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:bin/javac.exe",
+      "root": "jdk",
+      "relative": "bin/javac.exe",
+      "required": true,
+      "bytes": 24232,
+      "sha256": "988446ceec6e33ce0420ddf2489bb13d3a2278b4c8745309123dfa8f2c0dd0ce",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:legal/java.base/LICENSE",
+      "root": "jdk",
+      "relative": "legal/java.base/LICENSE",
+      "required": true,
+      "bytes": 19274,
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:legal/java.base/ADDITIONAL_LICENSE_INFO",
+      "root": "jdk",
+      "relative": "legal/java.base/ADDITIONAL_LICENSE_INFO",
+      "required": true,
+      "bytes": 2114,
+      "sha256": "a69bce275ba7a3570af6579cb0f55682cd75fedfcd49e0e8e9022270c447c916",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "jdk:legal/java.base/ASSEMBLY_EXCEPTION",
+      "root": "jdk",
+      "relative": "legal/java.base/ASSEMBLY_EXCEPTION",
+      "required": true,
+      "bytes": 1522,
+      "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb",
+      "identity_kind": "observed installed sample; not upstream distribution hash"
+    },
+    {
+      "id": "asset:pdf.ttf",
+      "root": "project",
+      "relative": "app/src/main/assets/tessdata/pdf.ttf",
+      "required": true,
+      "bytes": 572,
+      "sha256": "c7845420925a23d88ed830a63957b8af85a66a8daf8d9fc90e843673b2ef1a59"
+    },
+    {
+      "id": "asset:chi_sim.traineddata",
+      "root": "project",
+      "relative": "app/src/main/assets/tessdata/chi_sim.traineddata",
+      "required": true,
+      "bytes": 2469156,
+      "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730"
+    },
+    {
+      "id": "asset:eng.traineddata",
+      "root": "project",
+      "relative": "app/src/main/assets/tessdata/eng.traineddata",
+      "required": true,
+      "bytes": 4113088,
+      "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    {
+      "id": "vendor:patched-renderer",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/cpp/tesseract/src/src/api/pdfrenderer.cpp",
+      "required": true,
+      "sha256": "d0ea7aec58f97a2b45b4d162a5076daee9cd5fc86b4ffc11dc6d00c11f1506cb"
+    },
+    {
+      "id": "vendor:LICENSE",
+      "root": "vendor",
+      "relative": "LICENSE",
+      "required": true,
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "id": "vendor:tesseract4android/src/main/java/com/googlecode/tesseract/android/TessBaseAPI.java",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/java/com/googlecode/tesseract/android/TessBaseAPI.java",
+      "required": true,
+      "bytes": 35414,
+      "sha256": "348becf2a7b5ea358f195484334e57593960832e661804286dd1e0de8221bc3a"
+    },
+    {
+      "id": "vendor:tesseract4android/src/main/java/com/googlecode/tesseract/android/TessPdfRenderer.java",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/java/com/googlecode/tesseract/android/TessPdfRenderer.java",
+      "required": true,
+      "bytes": 2199,
+      "sha256": "37e2db686e4949efcdf53b0c0c4f5af7a1e32ef6294de8135de363e81ecee978"
+    },
+    {
+      "id": "vendor:tesseract4android/src/main/java/com/googlecode/leptonica/android/Pix.java",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/java/com/googlecode/leptonica/android/Pix.java",
+      "required": true,
+      "bytes": 10883,
+      "sha256": "0098d6094d2a06f0caa8890857913aef133eb84a953249ddf66881e77bc55e74"
+    },
+    {
+      "id": "vendor:tesseract4android/src/main/java/com/googlecode/leptonica/android/ReadFile.java",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/java/com/googlecode/leptonica/android/ReadFile.java",
+      "required": true,
+      "bytes": 6137,
+      "sha256": "6c50bfad29f6ccfb9e304873cd7c2e359607d45b46690ef558e44cde2df89ad6"
+    },
+    {
+      "id": "vendor:tesseract4android/src/main/cpp/CMakeLists.txt",
+      "root": "vendor",
+      "relative": "tesseract4android/src/main/cpp/CMakeLists.txt",
+      "required": true,
+      "bytes": 1259,
+      "sha256": "c45842ec710f7f26ffdab1e63511f618c94c3868402bd47ce8fd17146f28fcea"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation/1.3.0/21f49f5f9b85fc49de712539f79123119740595/annotation-1.3.0.jar",
+      "required": true,
+      "bytes": 31705,
+      "sha256": "97dc45afefe3a1e421da42b8b6e9f90491477c45fc6178203e3a5e8a05ee8553"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation/1.3.0/annotation-1.3.0.module",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation/1.3.0/6adc685f78686901844153d9d7f41774e649eb4b/annotation-1.3.0.module",
+      "required": true,
+      "bytes": 2678,
+      "sha256": "9516c2ae44284ea0bd3d0eade0ee638879b708cbe31e3af92ba96c300604ebc3"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation/1.3.0/annotation-1.3.0.pom",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation/1.3.0/8e41994f7c27b40c14f53bf3fa40c84d5d00b13d/annotation-1.3.0.pom",
+      "required": true,
+      "bytes": 1707,
+      "sha256": "049517c5256a4bbc8529fcdc90c4eaaf358180ac205c91660767df26465efbb0"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation/1.8.1/annotation-1.8.1.pom",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation/1.8.1/228165dbe2b957115daa6166af380dddb2c5279a/annotation-1.8.1.pom",
+      "required": true,
+      "bytes": 2008,
+      "sha256": "b71225974ec087eb96c25ef6819f55b1c22f530e85ca446ba735fb66ed04ff5c"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation/1.8.1/annotation-1.8.1.module",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation/1.8.1/8060e9222bd53e8de2b2e348d99b3756d6524a4c/annotation-1.8.1.module",
+      "required": true,
+      "bytes": 34460,
+      "sha256": "e6386e85afdd865044e216575e493ed39a63a6325bd925379a21429c3941c8b5"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation-jvm/1.8.1/annotation-jvm-1.8.1.module",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation-jvm/1.8.1/6d8ec6767470038194891be616c12e3741f2cdf5/annotation-jvm-1.8.1.module",
+      "required": true,
+      "bytes": 3225,
+      "sha256": "c959e3b0cdc75c15efe01605fa56aa79f033e39238e150638b8fabde6aa121a0"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation-jvm/1.8.1/annotation-jvm-1.8.1.jar",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation-jvm/1.8.1/b8a16fe526014b7941c1debaccaf9c5153692dbb/annotation-jvm-1.8.1.jar",
+      "required": true,
+      "bytes": 56126,
+      "sha256": "9aab326d9492800991854360ac248f493ce7f7c3183519309b78ace9e240f6f6"
+    },
+    {
+      "id": "maven:androidx/annotation/annotation-jvm/1.8.1/annotation-jvm-1.8.1.pom",
+      "root": "maven",
+      "relative": "androidx.annotation/annotation-jvm/1.8.1/f948f21604453ee47039d125280c6cbc3f7e3a62/annotation-jvm-1.8.1.pom",
+      "required": true,
+      "bytes": 1826,
+      "sha256": "d49203733aa6fae046c3a3de4e796eed347595755486a64273989844759750b4"
+    },
+    {
+      "id": "maven:androidx/exifinterface/exifinterface/1.4.2/exifinterface-1.4.2.aar",
+      "root": "maven",
+      "relative": "androidx.exifinterface/exifinterface/1.4.2/21394465747d1a9f68297058907db6984e610772/exifinterface-1.4.2.aar",
+      "required": true,
+      "bytes": 75550,
+      "sha256": "6bb2b68682a2023c55f35f941444ffea0157947b061e4fd7606ba935e2e77425"
+    },
+    {
+      "id": "maven:androidx/exifinterface/exifinterface/1.4.2/exifinterface-1.4.2.pom",
+      "root": "maven",
+      "relative": "androidx.exifinterface/exifinterface/1.4.2/501cdbc01189a271d536149e203cbb0d9d0aac8b/exifinterface-1.4.2.pom",
+      "required": true,
+      "bytes": 2004,
+      "sha256": "b11c0763f3094d28664412b7d3316bb5d1a785810fb7b4fe5f356cd5cbcd1725"
+    },
+    {
+      "id": "maven:androidx/exifinterface/exifinterface/1.4.2/exifinterface-1.4.2.module",
+      "root": "maven",
+      "relative": "androidx.exifinterface/exifinterface/1.4.2/9d994ee33e59488401dad0b940c02ad2b5a925b9/exifinterface-1.4.2.module",
+      "required": true,
+      "bytes": 4032,
+      "sha256": "6365165eb5aacc700a34b1650a2910ea01ebd819821b89af7689fa41274fb00b"
+    },
+    {
+      "id": "maven:com/android/application/com.android.application.gradle.plugin/8.13.2/com.android.application.gradle.plugin-8.13.2.pom",
+      "root": "maven",
+      "relative": "com.android.application/com.android.application.gradle.plugin/8.13.2/779e914509df0efe85c87966b27afd93f7a9e966/com.android.application.gradle.plugin-8.13.2.pom",
+      "required": true,
+      "bytes": 1330,
+      "sha256": "d4590cc0488efba782fb37d13e52812932f7efff10222ed2a96b7520bfdaa2af"
+    },
+    {
+      "id": "maven:com/android/library/com.android.library.gradle.plugin/8.13.2/com.android.library.gradle.plugin-8.13.2.pom",
+      "root": "maven",
+      "relative": "com.android.library/com.android.library.gradle.plugin/8.13.2/b48bd97402c4bbd7b850ab4f4f98277373c12443/com.android.library.gradle.plugin-8.13.2.pom",
+      "required": true,
+      "bytes": 1322,
+      "sha256": "c58553fcc90ee3579ceeffcae961f4ac4722b24854921afaac9b7a668986ebbd"
+    },
+    {
+      "id": "maven:com/android/tools/build/gradle/8.13.2/gradle-8.13.2.jar",
+      "root": "maven",
+      "relative": "com.android.tools.build/gradle/8.13.2/5975ee61ee7e3f9413fbe10270f230cfb6d227fc/gradle-8.13.2.jar",
+      "required": true,
+      "bytes": 13116808,
+      "sha256": "e494f7ce75ca6c1abff301d4a70b18fdd3d6af855875f4f85082bb7608f041de"
+    },
+    {
+      "id": "maven:com/android/tools/build/gradle/8.13.2/gradle-8.13.2.module",
+      "root": "maven",
+      "relative": "com.android.tools.build/gradle/8.13.2/5e05503cab8efc07a81e0aeb04193d6579f83db2/gradle-8.13.2.module",
+      "required": true,
+      "bytes": 13567,
+      "sha256": "0aac0bee1a4fc65cd69a6788548a7e21d246250c858017e11e3bf23163cb75a7"
+    },
+    {
+      "id": "maven:com/android/tools/build/gradle/8.13.2/gradle-8.13.2.pom",
+      "root": "maven",
+      "relative": "com.android.tools.build/gradle/8.13.2/99424fd799fa798ff502c7b25793cb86010ea46d/gradle-8.13.2.pom",
+      "required": true,
+      "bytes": 11773,
+      "sha256": "fc7edba93c5b91ce7267fa7bfdc1fa49422efc633ac279a363e02eb0fd29bcad"
+    },
+    {
+      "id": "license-text:android-sdk",
+      "root": "downloads",
+      "relative": "android-sdk-license.txt",
+      "required": true,
+      "bytes": 16962,
+      "sha256": "1f8729233617b193fd619213792ae16a41b95d2bbbf525dfe66998252ba68b16"
+    }
+  ],
+  "required_license_reviews": [
+    "android-sdk-license"
+  ],
+  "vendor_from_project": "../../.tools/sources/Tesseract4Android-4.9.0",
+  "maven_inventory": "observed-maven-artifacts.json",
+  "limitations": [
+    "Static read-only input inspection only; never a build or bit-for-bit APK certificate",
+    "Installed tools are sample identities, not a complete installation tree audit",
+    "JDK original distribution URL/archive checksum unknown; release file has version/modules only; historical Gradle JVM output identified Temurin17.0.19+10",
+    "SDK platform installed sample matches copied API36 revision2; official archive not acquired/compared",
+    "tessdata_fast4.1.0 tag-to-commit mapping not independently resolved",
+    "375 observed cache files are not Gradle dependency locking/verification or a proof of transitive closure",
+    "No full instrumentation runner/old image fixtures in public source; default suite not runnable as-is"
+  ],
+  "font_identity": {
+    "name": "Tesseract GlyphLessFont",
+    "copyright": "Google Inc.2020",
+    "license": "Apache-2.0 in pdf_ttf.h",
+    "parent_independent_check": "archive pdf.ttf equals first572 header bytes; trailing0 not part of font; no repeat extraction performed"
+  },
+  "asset_origin_boundary": "tessdata_fast4.1.0 tag URL with pinned content and historical HTTP200/current-byte match; tag commit not independently resolved"
+}

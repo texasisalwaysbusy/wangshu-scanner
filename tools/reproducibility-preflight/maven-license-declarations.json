@@ -1,0 +1,2360 @@
+{
+  "scope": "Historical POM declarations, not a binary redistribution clearance; parent/inheritance/bundled components may be missing",
+  "records": [
+    {
+      "group": "androidx.annotation",
+      "artifact": "annotation",
+      "version": "1.3.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "androidx.annotation",
+      "artifact": "annotation",
+      "version": "1.8.1",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "androidx.annotation",
+      "artifact": "annotation-jvm",
+      "version": "1.8.1",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "androidx.databinding",
+      "artifact": "databinding-common",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "androidx.databinding",
+      "artifact": "databinding-compiler-common",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "androidx.exifinterface",
+      "artifact": "exifinterface",
+      "version": "1.4.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android",
+      "artifact": "signflinger",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android",
+      "artifact": "zipflinger",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.application",
+      "artifact": "com.android.application.gradle.plugin",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.databinding",
+      "artifact": "baseLibrary",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.library",
+      "artifact": "com.android.library.gradle.plugin",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "annotations",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "common",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "dvlib",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "play-sdk-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "repository",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "sdk-common",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools",
+      "artifact": "sdklib",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.analytics-library",
+      "artifact": "crash",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.analytics-library",
+      "artifact": "protos",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.analytics-library",
+      "artifact": "shared",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.analytics-library",
+      "artifact": "tracker",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "aapt2",
+      "version": "8.13.2-14304508",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "aapt2-proto",
+      "version": "8.13.2-14304508",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "aaptcompiler",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "apksig",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "apkzlib",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "builder",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "builder-model",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "builder-test-api",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "bundletool",
+      "version": "1.18.1",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "gradle",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "gradle-api",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "gradle-common-api",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "gradle-settings-api",
+      "version": "8.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "manifest-merger",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build",
+      "artifact": "transform-api",
+      "version": "2.0.0-deprecated-use-gradle-api",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build.jetifier",
+      "artifact": "jetifier-core",
+      "version": "1.0.0-beta10",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.build.jetifier",
+      "artifact": "jetifier-processor",
+      "version": "1.0.0-beta10",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.ddms",
+      "artifact": "ddmlib",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.external.com-intellij",
+      "artifact": "intellij-core",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.external.com-intellij",
+      "artifact": "kotlin-compiler",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.external.org-jetbrains",
+      "artifact": "uast",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.layoutlib",
+      "artifact": "layoutlib-api",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint-api",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint-checks",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint-gradle",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint-model",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.lint",
+      "artifact": "lint-typedef-remover",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-device-provider-ddmlib-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-device-provider-profile-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-host-additional-test-output-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-host-apk-installer-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-host-coverage-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-host-emulator-control-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-host-logcat-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.android.tools.utp",
+      "artifact": "android-test-plugin-result-listener-gradle-proto",
+      "version": "31.13.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.android",
+      "artifact": "annotations",
+      "version": "4.1.1.4",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.api.grpc",
+      "artifact": "proto-google-common-protos",
+      "version": "2.48.0",
+      "declared_licenses": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.auto",
+      "artifact": "auto-parent",
+      "version": "6",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.auto.value",
+      "artifact": "auto-value-annotations",
+      "version": "1.6.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.auto.value",
+      "artifact": "auto-value-parent",
+      "version": "1.6.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.code.findbugs",
+      "artifact": "jsr305",
+      "version": "3.0.2",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.code.gson",
+      "artifact": "gson",
+      "version": "2.11.0",
+      "declared_licenses": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.code.gson",
+      "artifact": "gson-parent",
+      "version": "2.11.0",
+      "declared_licenses": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.crypto.tink",
+      "artifact": "tink",
+      "version": "1.7.0",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.dagger",
+      "artifact": "dagger",
+      "version": "2.28.3",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_annotations",
+      "version": "2.18.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_annotations",
+      "version": "2.27.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_annotations",
+      "version": "2.28.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_annotations",
+      "version": "2.3.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_annotations",
+      "version": "2.30.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_parent",
+      "version": "2.18.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_parent",
+      "version": "2.27.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_parent",
+      "version": "2.28.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_parent",
+      "version": "2.3.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.errorprone",
+      "artifact": "error_prone_parent",
+      "version": "2.30.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.flatbuffers",
+      "artifact": "flatbuffers-java",
+      "version": "1.12.0",
+      "declared_licenses": [
+        {
+          "name": "Apache License V2.0",
+          "url": "https://raw.githubusercontent.com/google/flatbuffers/master/LICENSE.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.guava",
+      "artifact": "failureaccess",
+      "version": "1.0.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.guava",
+      "artifact": "guava",
+      "version": "33.3.1-jre",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.guava",
+      "artifact": "guava-parent",
+      "version": "26.0-android",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.guava",
+      "artifact": "guava-parent",
+      "version": "33.3.1-jre",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.guava",
+      "artifact": "listenablefuture",
+      "version": "9999.0-empty-to-avoid-conflict-with-guava",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.j2objc",
+      "artifact": "j2objc-annotations",
+      "version": "2.8",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.j2objc",
+      "artifact": "j2objc-annotations",
+      "version": "3.0.0",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.jimfs",
+      "artifact": "jimfs",
+      "version": "1.1",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.jimfs",
+      "artifact": "jimfs-parent",
+      "version": "1.1",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.protobuf",
+      "artifact": "protobuf-bom",
+      "version": "3.25.5",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://opensource.org/licenses/BSD-3-Clause",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.protobuf",
+      "artifact": "protobuf-java",
+      "version": "3.25.5",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.protobuf",
+      "artifact": "protobuf-java-util",
+      "version": "3.25.5",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.google.protobuf",
+      "artifact": "protobuf-parent",
+      "version": "3.25.5",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://opensource.org/licenses/BSD-3-Clause",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.google.testing.platform",
+      "artifact": "core-proto",
+      "version": "0.0.9-alpha03",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.googlecode.juniversalchardet",
+      "artifact": "juniversalchardet",
+      "version": "1.0.3",
+      "declared_licenses": [
+        {
+          "name": "Mozilla Public License 1.1 (MPL 1.1)",
+          "url": "http://www.mozilla.org/MPL/MPL-1.1.html",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.squareup",
+      "artifact": "javapoet",
+      "version": "1.10.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.squareup",
+      "artifact": "javawriter",
+      "version": "2.5.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.sun.activation",
+      "artifact": "all",
+      "version": "1.2.0",
+      "declared_licenses": [
+        {
+          "name": "CDDL/GPLv2+CE",
+          "url": "https://github.com/javaee/activation/blob/master/LICENSE.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.sun.activation",
+      "artifact": "all",
+      "version": "1.2.1",
+      "declared_licenses": [
+        {
+          "name": "EDL 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.sun.activation",
+      "artifact": "javax.activation",
+      "version": "1.2.0",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.istack",
+      "artifact": "istack-commons",
+      "version": "3.0.8",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Distribution License - v 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.sun.istack",
+      "artifact": "istack-commons-runtime",
+      "version": "3.0.8",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.xml.bind",
+      "artifact": "jaxb-bom-ext",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.xml.bind.mvn",
+      "artifact": "jaxb-parent",
+      "version": "2.3.2",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Distribution License - v 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "com.sun.xml.bind.mvn",
+      "artifact": "jaxb-runtime-parent",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.xml.bind.mvn",
+      "artifact": "jaxb-txw-parent",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.xml.fastinfoset",
+      "artifact": "FastInfoset",
+      "version": "1.2.16",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "com.sun.xml.fastinfoset",
+      "artifact": "fastinfoset-project",
+      "version": "1.2.16",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.opensource.org/licenses/apache2.0.php",
+          "distribution": ""
+        },
+        {
+          "name": "Eclipse Distribution License - v 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "commons-codec",
+      "artifact": "commons-codec",
+      "version": "1.10",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "commons-codec",
+      "artifact": "commons-codec",
+      "version": "1.11",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "commons-io",
+      "artifact": "commons-io",
+      "version": "2.16.1",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "commons-logging",
+      "artifact": "commons-logging",
+      "version": "1.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-api",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-context",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-core",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-inprocess",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-netty",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-protobuf",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-protobuf-lite",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-stub",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.grpc",
+      "artifact": "grpc-util",
+      "version": "1.69.1",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-buffer",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-codec",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-codec-http",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-codec-http2",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-codec-socks",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-common",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-handler",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-handler-proxy",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-parent",
+      "version": "4.1.110.Final",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-resolver",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-transport",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.netty",
+      "artifact": "netty-transport-native-unix-common",
+      "version": "4.1.110.Final",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "io.perfmark",
+      "artifact": "perfmark-api",
+      "version": "0.27.0",
+      "declared_licenses": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "jakarta.activation",
+      "artifact": "jakarta.activation-api",
+      "version": "1.2.1",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "jakarta.xml.bind",
+      "artifact": "jakarta.xml.bind-api",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "jakarta.xml.bind",
+      "artifact": "jakarta.xml.bind-api-parent",
+      "version": "2.3.2",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Distribution License - v 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "javax.annotation",
+      "artifact": "javax.annotation-api",
+      "version": "1.3.2",
+      "declared_licenses": [
+        {
+          "name": "CDDL + GPLv2 with classpath exception",
+          "url": "https://github.com/javaee/javax.annotation/blob/master/LICENSE",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "javax.inject",
+      "artifact": "javax.inject",
+      "version": "1",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "net.java",
+      "artifact": "jvnet-parent",
+      "version": "1",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "net.java",
+      "artifact": "jvnet-parent",
+      "version": "3",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "net.java.dev.jna",
+      "artifact": "jna",
+      "version": "5.6.0",
+      "declared_licenses": [
+        {
+          "name": "LGPL, version 2.1",
+          "url": "http://www.gnu.org/licenses/licenses.html",
+          "distribution": "repo"
+        },
+        {
+          "name": "Apache License v2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "net.java.dev.jna",
+      "artifact": "jna-platform",
+      "version": "5.6.0",
+      "declared_licenses": [
+        {
+          "name": "LGPL, version 2.1",
+          "url": "http://www.gnu.org/licenses/licenses.html",
+          "distribution": "repo"
+        },
+        {
+          "name": "Apache License v2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "net.sf.jopt-simple",
+      "artifact": "jopt-simple",
+      "version": "4.9",
+      "declared_licenses": [
+        {
+          "name": "The MIT License",
+          "url": "http://www.opensource.org/licenses/mit-license.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "net.sf.kxml",
+      "artifact": "kxml2",
+      "version": "2.3.0",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "13",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "15",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "18",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "21",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "23",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache",
+      "artifact": "apache",
+      "version": "31",
+      "declared_licenses": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-compress",
+      "version": "1.21",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-parent",
+      "version": "34",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-parent",
+      "version": "35",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-parent",
+      "version": "42",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-parent",
+      "version": "52",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.commons",
+      "artifact": "commons-parent",
+      "version": "69",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpclient",
+      "version": "4.5.14",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpclient",
+      "version": "4.5.6",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcomponents-client",
+      "version": "4.5.14",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcomponents-client",
+      "version": "4.5.6",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcomponents-core",
+      "version": "4.4.16",
+      "declared_licenses": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcomponents-parent",
+      "version": "10",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcomponents-parent",
+      "version": "11",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpcore",
+      "version": "4.4.16",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.apache.httpcomponents",
+      "artifact": "httpmime",
+      "version": "4.5.6",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.bitbucket.b_c",
+      "artifact": "jose4j",
+      "version": "0.9.5",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.bouncycastle",
+      "artifact": "bcpkix-jdk18on",
+      "version": "1.79",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.bouncycastle",
+      "artifact": "bcprov-jdk18on",
+      "version": "1.79",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.bouncycastle",
+      "artifact": "bcutil-jdk18on",
+      "version": "1.79",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.checkerframework",
+      "artifact": "checker-qual",
+      "version": "2.5.8",
+      "declared_licenses": [
+        {
+          "name": "The MIT License",
+          "url": "http://opensource.org/licenses/MIT",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.checkerframework",
+      "artifact": "checker-qual",
+      "version": "3.43.0",
+      "declared_licenses": [
+        {
+          "name": "The MIT License",
+          "url": "http://opensource.org/licenses/MIT",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.codehaus.groovy",
+      "artifact": "groovy",
+      "version": "3.0.22",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.codehaus.mojo",
+      "artifact": "animal-sniffer-annotations",
+      "version": "1.24",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.codehaus.mojo",
+      "artifact": "animal-sniffer-parent",
+      "version": "1.24",
+      "declared_licenses": [
+        {
+          "name": "MIT license",
+          "url": "https://spdx.org/licenses/MIT.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.codehaus.mojo",
+      "artifact": "mojo-parent",
+      "version": "84",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.eclipse.ee4j",
+      "artifact": "project",
+      "version": "1.0.2",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Public License v. 2.0",
+          "url": "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt",
+          "distribution": "repo"
+        },
+        {
+          "name": "GNU General Public License, version 2 with the GNU Classpath Exception",
+          "url": "https://www.gnu.org/software/classpath/license.html",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.eclipse.ee4j",
+      "artifact": "project",
+      "version": "1.0.5",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Public License v. 2.0",
+          "url": "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt",
+          "distribution": "repo"
+        },
+        {
+          "name": "GNU General Public License, version 2 with the GNU Classpath Exception",
+          "url": "https://www.gnu.org/software/classpath/license.html",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.glassfish.jaxb",
+      "artifact": "jaxb-bom",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.glassfish.jaxb",
+      "artifact": "jaxb-runtime",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.glassfish.jaxb",
+      "artifact": "txw2",
+      "version": "2.3.2",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.jdom",
+      "artifact": "jdom2",
+      "version": "2.0.6",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.jetbrains",
+      "artifact": "annotations",
+      "version": "13.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains",
+      "artifact": "annotations",
+      "version": "23.0.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-reflect",
+      "version": "2.2.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib",
+      "version": "1.7.10",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib",
+      "version": "2.2.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-common",
+      "version": "1.7.10",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-jdk7",
+      "version": "2.2.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlin",
+      "artifact": "kotlin-stdlib-jdk8",
+      "version": "2.2.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlinx",
+      "artifact": "kotlinx-coroutines-bom",
+      "version": "1.9.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlinx",
+      "artifact": "kotlinx-coroutines-core",
+      "version": "1.9.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jetbrains.kotlinx",
+      "artifact": "kotlinx-coroutines-core-jvm",
+      "version": "1.9.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jspecify",
+      "artifact": "jspecify",
+      "version": "1.0.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.junit",
+      "artifact": "junit-bom",
+      "version": "5.10.2",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Public License v2.0",
+          "url": "https://www.eclipse.org/legal/epl-v20.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.jvnet.staxex",
+      "artifact": "stax-ex",
+      "version": "1.8.1",
+      "declared_licenses": [
+        {
+          "name": "Eclipse Distribution License - v 1.0",
+          "url": "http://www.eclipse.org/org/documents/edl-v10.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2",
+      "artifact": "ow2",
+      "version": "1.5.1",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2.asm",
+      "artifact": "asm",
+      "version": "9.8",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2.asm",
+      "artifact": "asm-analysis",
+      "version": "9.8",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2.asm",
+      "artifact": "asm-commons",
+      "version": "9.8",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2.asm",
+      "artifact": "asm-tree",
+      "version": "9.8",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.ow2.asm",
+      "artifact": "asm-util",
+      "version": "9.8",
+      "declared_licenses": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.slf4j",
+      "artifact": "slf4j-api",
+      "version": "1.7.30",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.slf4j",
+      "artifact": "slf4j-parent",
+      "version": "1.7.30",
+      "declared_licenses": [
+        {
+          "name": "MIT License",
+          "url": "http://www.opensource.org/licenses/mit-license.php",
+          "distribution": "repo"
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    },
+    {
+      "group": "org.sonatype.oss",
+      "artifact": "oss-parent",
+      "version": "7",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.sonatype.oss",
+      "artifact": "oss-parent",
+      "version": "9",
+      "declared_licenses": [],
+      "inheritance_or_bundle_review_needed": true
+    },
+    {
+      "group": "org.tensorflow",
+      "artifact": "tensorflow-lite-metadata",
+      "version": "0.2.0",
+      "declared_licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+          "distribution": ""
+        }
+      ],
+      "inheritance_or_bundle_review_needed": false
+    }
+  ]
+}

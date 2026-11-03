@@ -1,0 +1,130 @@
+[
+  {
+    "id": "google-sdk-terms",
+    "bytes": 16962,
+    "sha256": "1f8729233617b193fd619213792ae16a41b95d2bbbf525dfe66998252ba68b16",
+    "sha1": "efa68a6b3c661d18699d5c026771d5911cdc2f83",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "gradle-apache",
+    "bytes": 23622,
+    "sha256": "9536d88ea948603d18e232a13f5958d67807cd80828036b082bff171d2cf0703",
+    "sha1": "3e611defba2fba11e5d9c15a683ab13ae3f4e5e9",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "gradle-notice",
+    "bytes": 868,
+    "sha256": "c2de5fd9adc7ccc4e1382a0e1f38ec6e14f8ca6e28d3c20289fe80353b019aa1",
+    "sha1": "71ae71db7ee1c56759b23cc00a4648e26cf6d58c",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "cmake-bsd-and-components",
+    "bytes": 5324,
+    "sha256": "f1a4326266aada65b307dac05161a9d02d3dba4fb08b50cb26e3c24cc8a86e97",
+    "sha1": "67bc6210af189fa44a8a684dc0d3fe30f77717e5",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "ndk-component-notice",
+    "bytes": 522923,
+    "sha256": "4d5224d1c0b54ffa88b0dc0088191638fdbb7227835095dfb98f7f66b416a323",
+    "sha1": "115e581ac9bdf9b990f753e62edc9ae8532984a9",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "jdk-gpl2",
+    "bytes": 19274,
+    "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726",
+    "sha1": "a4fb972c240d89131ee9e16b845cd302e0ecb05f",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "jdk-classpath-exception",
+    "bytes": 2114,
+    "sha256": "a69bce275ba7a3570af6579cb0f55682cd75fedfcd49e0e8e9022270c447c916",
+    "sha1": "1a5c553e71bdb7d94995b206bc9eaa49abd1e888",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "font-apache-header",
+    "bytes": 4580,
+    "sha256": "1a349446ac270b084cd7c073ccf4652f6e7b1e2e6ff3ff7f2f9b434c3228af34",
+    "sha1": "1ed280a93ac5f792ded08365c68a80243e31b834",
+    "location_kind": "named existing downloaded/installed upstream license text; local path intentionally omitted"
+  },
+  {
+    "id": "ANDROID-RUNTIME-DEPENDENCIES.txt",
+    "project_relative": "app/src/main/assets/notices/ANDROID-RUNTIME-DEPENDENCIES.txt",
+    "bytes": 410,
+    "sha256": "74ae34ba0d67c0ca7aeb446b106a69a764fc4fa081b3dabb082d6308c7d66439",
+    "sha1": "11a4fc9e34ea88690de30934f8ba2052dbde5663",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "Leptonica-LICENSE.txt",
+    "project_relative": "app/src/main/assets/notices/Leptonica-LICENSE.txt",
+    "bytes": 1521,
+    "sha256": "87829abb5bbb00b55a107365da89e9a33f86c4250169e5a1e5588505be7d5806",
+    "sha1": "e0b1dceebde3eb567f610aa97227aa6a5e713810",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "libjpeg-README.txt",
+    "project_relative": "app/src/main/assets/notices/libjpeg-README.txt",
+    "bytes": 18719,
+    "sha256": "7c25493a9f64fed34d01445467341bda77bc1cdbeccbe33558659ef173fb9ff2",
+    "sha1": "e634bbde923ea7c698e493ef9b680b6807b3d297",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "libpng-LICENSE.txt",
+    "project_relative": "app/src/main/assets/notices/libpng-LICENSE.txt",
+    "bytes": 5345,
+    "sha256": "16d9daaafbf63a31a5bdc91d4600972548fef5aaa1244202393288dbd079c49a",
+    "sha1": "334cf65210726bf58f6248b9170627f2af831629",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "LLVM-NOTICE.txt",
+    "project_relative": "app/src/main/assets/notices/LLVM-NOTICE.txt",
+    "bytes": 130424,
+    "sha256": "f96f763beb66a7ba7a667647fc64c0226ace875e590c831fdd9579ec1c1d91e1",
+    "sha1": "c05d3b6c975c4616ff170b8505cd0715c89eea7c",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "PROJECT-MODIFICATIONS.txt",
+    "project_relative": "app/src/main/assets/notices/PROJECT-MODIFICATIONS.txt",
+    "bytes": 331,
+    "sha256": "6b2d5b160f8aee9b4c06a817ac8f9e98fac652f2d8bac00d1a7b3027c17fb59a",
+    "sha1": "d1b3beadad79ecc2c9f6ede6b1fc4810e416d7f8",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "tessdata-fast-LICENSE.txt",
+    "project_relative": "app/src/main/assets/notices/tessdata-fast-LICENSE.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sha1": "2b8b815229aa8a61e483fb4ba0588b8b6c491890",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "Tesseract-LICENSE.txt",
+    "project_relative": "app/src/main/assets/notices/Tesseract-LICENSE.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sha1": "2b8b815229aa8a61e483fb4ba0588b8b6c491890",
+    "location_kind": "public project notice"
+  },
+  {
+    "id": "Tesseract4Android-LICENSE.txt",
+    "project_relative": "app/src/main/assets/notices/Tesseract4Android-LICENSE.txt",
+    "bytes": 11357,
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "sha1": "7df059597099bb7dcf25d2a9aedfaf4465f72d8d",
+    "location_kind": "public project notice"
+  }
+]
