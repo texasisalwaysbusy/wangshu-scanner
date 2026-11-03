@@ -15,6 +15,7 @@ public final class OcrReviewHost {
     final android.content.ClipboardManager clipboard=new android.content.ClipboardManager();
     static final String CLIPBOARD_SERVICE="clipboard";
     boolean alive(){return living;}Object getSystemService(String key){return clipboard;}
+    Object ocrCandidate;void singlePageOcrOptions(){}void showOcrCandidate(Object value){}
     void toast(String message){}void textExportOptions(){}void openEditor(Models.Page page){opened=page;}
     TextView text(String value,int size,int color){TextView view=new TextView();view.setText(value);return view;}
     Button button(String label,Runnable action){lastButton=new Button(action);return lastButton;}

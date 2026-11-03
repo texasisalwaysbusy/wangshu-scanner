@@ -72,6 +72,7 @@ public final class MainActivity extends Activity {
     private long approvedExportBytes;
     private final HashSet<String> approvedSaveTokens=new HashSet<>();
     private PreparedText preparedText;
+    private OcrCandidate.Result ocrCandidate;
     private final HashMap<String,PreparedText> textSavePermits=new HashMap<>();
     private String pendingKind="pdf";
     private boolean exportA4=true;
@@ -453,13 +454,15 @@ public final class MainActivity extends Activity {
             }
         });
         controls.addView(input,new LinearLayout.LayoutParams(-1,-2));
+        controls.addView(button("单页重新识别 · 先比较，保留修订",this::singlePageOcrOptions));
+        controls.addView(button("查看本次单页识别候选（未保存）",()->showOcrCandidate(ocrCandidate)));
         controls.addView(button("另存文字副本 · 选择已保存或草稿",this::textExportOptions));
         controls.addView(button("复制本页文字（含当前修改）",()->{
             if(document!=owner||draft!=page||editorSession!=session||generation!=viewGeneration||screen!=2)return;
             ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("本页文字",page.ocrText));
             toast("已复制本页文字；复制不会保存修改");
         }));
-        controls.addView(text("页面需明确保存才会生效；切后台时可能自动保留私有草稿快照，放弃编辑也不删除快照。旧识别仍不参与搜索；重新识别会替换文字。可搜索 PDF 会重新识别，不使用这里的纠错文字，公式和手写请以原图为准。",13,MUTED));
+        controls.addView(text("页面需明确保存才会生效；切后台时可能自动保留私有草稿快照，放弃编辑也不删除快照。旧识别仍不参与搜索；整本重新识别会替换已保存文字，单页候选需确认采用。可搜索 PDF 会重新识别，不使用这里的纠错文字，公式和手写请以原图为准。",13,MUTED));
     }
     private void recoverLifecycleDrafts(){
         Models.Document owner=document;if(owner==null||busy)return;
@@ -484,6 +487,51 @@ public final class MainActivity extends Activity {
         if(!fresh.savedSnapshot.equals(EditorSaveFlow.observedVersion(fresh.id)))throw new IOException("文稿在核对后已变化；快照保留，未载入");
         for(Models.Page page:fresh.active())if(page.id.equals(edited.id)){document=fresh;openEditor(page,edited);return;}
         throw new IOException("当前页面不可用；快照保留，未载入");
+    }
+    private boolean ocrCandidateReady(){return alive()&&resumed&&!stateSaved&&!busy&&screen==2&&!cropping&&recovery==null&&!editorSaves.hasPending()&&activeSaveToken==null;}
+    private boolean ocrCandidateCurrent(OcrCandidate.Result result){return result!=null&&ocrCandidateReady()&&result.request.current(document,editorSession,originalPage,draft,originalPageBaseline,editorDocumentVersion,generation,navigationCycle);}
+    private void singlePageOcrOptions(){
+        if(!ocrCandidateReady()){toast("请先完成当前操作，原文字保留");return;}
+        final OcrCandidate.Request request;
+        try{request=new OcrCandidate.Request(document,editorSession,originalPage,draft,originalPageBaseline,editorDocumentVersion,generation,navigationCycle);}catch(Exception problem){error(problem);return;}
+        new AlertDialog.Builder(this).setTitle("仅重识别第 "+request.number+" 页 · 先比较").setMessage("使用当前草稿的图像处理参数生成候选，不改已有文字或已保存页面。候选可能仍有错字，公式和手写以原图为准。您可保留当前修订、复制候选，或确认保留旧草稿后采用候选；采用后仍需保存本页。此操作不改变 PDF 文字层。候选仅在本次界面中保留，进程结束需重新识别。")
+            .setPositiveButton("中英混合候选",(dialog,which)->runSinglePageOcr(request,"chi_sim+eng"))
+            .setNeutralButton("仅英文候选",(dialog,which)->runSinglePageOcr(request,"eng")).setNegativeButton("保留当前文字",null).show();
+    }
+    private void runSinglePageOcr(OcrCandidate.Request request,String language){
+        if(!ocrCandidateReady()||!request.current(document,editorSession,originalPage,draft,originalPageBaseline,editorDocumentVersion,generation,navigationCycle)){toast("页面或修订已变化，未开始重识别");return;}
+        runIO("正在生成单页识别候选 · 原修订保留…",()->RecoverySourceGate.verifyAndRead(new File(getFilesDir(),"documents"),identity(request.owner.id,request.frozen),()->{
+            store.assertCurrentReadable(request.owner);String text=OcrEngine.recognizePage(store,request.owner,request.frozen,language);store.assertCurrentReadable(request.owner);return request.result(text,language);
+        }).value,value->{
+            OcrCandidate.Result result=(OcrCandidate.Result)value;
+            if(!ocrCandidateCurrent(result)){toast("页面、修订或界面状态已变化；迟到候选未应用，原文字保留");return;}
+            ocrCandidate=result;showOcrCandidate(result);
+        },true);
+    }
+    private void showOcrCandidate(OcrCandidate.Result result){
+        if(result==null){toast("尚无单页识别候选，请先生成；已有文字保留");return;}
+        if(!resumed||stateSaved||busy||!alive())return;
+        boolean current=ocrCandidate==result&&ocrCandidateCurrent(result);OcrCandidate.Request request=result.request;
+        ScrollView scroll=new ScrollView(this);LinearLayout panel=column();scroll.addView(panel);
+        panel.addView(text("文稿："+request.owner.title+" · 第 "+request.number+" / "+request.order.size()+" 页\n"+(current?"可比较采用；两份文字都尚未自动保存":"已过期，仅查看或复制，不能采用到当前页面")+"\n采用前先保留完整旧草稿到独立恢复记录，保留失败则不替换。采用后仍需保存本页；PDF 文字层不变。",14,MUTED));
+        panel.addView(text("原修订 · 识别启动时的草稿\n"+TextExport.origin(request.frozen.ocrOrigin)+"\n"+ocrPageStatus(request.frozen),14,INK));
+        TextView previous=text(request.frozen.ocrText.isEmpty()?"（原文字为空）":request.frozen.ocrText,16,INK);previous.setTextIsSelectable(true);panel.addView(previous);
+        panel.addView(text("新候选 · "+(result.language.equals("eng")?"仅英文":"中英混合")+" · 自动识别，未人工核对",14,INK));
+        TextView proposed=text(result.text.isEmpty()?"（候选为空；采用会清空文字，旧草稿先保留）":result.text,16,INK);proposed.setTextIsSelectable(true);panel.addView(proposed);
+        AlertDialog.Builder dialog=new AlertDialog.Builder(this).setTitle("单页文字比较 · 未保存").setView(scroll).setNeutralButton("复制新候选",(d,w)->{((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("单页识别候选 · 未校对",result.text));toast("已复制候选；原修订未替换");}).setNegativeButton("保留原修订",null);
+        if(current)dialog.setPositiveButton("保留旧稿并采用候选",(d,w)->adoptOcrCandidate(result));dialog.show();
+    }
+    private void adoptOcrCandidate(OcrCandidate.Result result){
+        if(ocrCandidate!=result||!ocrCandidateCurrent(result)){toast("候选或当前修订已变化，未替换文字");return;}
+        OcrCandidate.Request request=result.request;
+        runIO("正在保留旧修订并核对候选…",()->RecoverySourceGate.verifyAndRead(new File(getFilesDir(),"documents"),identity(request.owner.id,request.frozen),()->{
+            store.assertCurrentReadable(request.owner);
+            OcrCandidate.Adoption adoption=result.retainPrevious(EditDraftStore.recovery(getFilesDir()),(next,record)->preflightEditorSave(request.owner,request.original,next,record));
+            store.assertCurrentReadable(request.owner);return adoption;
+        }).value,value->{
+            if(ocrCandidate!=result||!ocrCandidateCurrent(result)||!result.apply((OcrCandidate.Adoption)value,document,editorSession,originalPage,draft,originalPageBaseline,editorDocumentVersion,generation,navigationCycle)){toast("状态已变化，候选未应用；旧修订记录保留");return;}
+            ocrCandidate=null;buildEditor();toast("候选已放入草稿，尚未保存；旧修订在文库“找回编辑恢复记录”中保留；仅原版本一致时可载入");
+        });
     }
     private static final class RecoveredLifecycle {final EditDraftStore.Draft draft;final Models.Document document;RecoveredLifecycle(EditDraftStore.Draft draft,Models.Document document){this.draft=draft;this.document=document;}}
     private static final class PreparedText {

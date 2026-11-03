@@ -1,6 +1,6 @@
 # Source preview integration — 2026-11-03
 
-This is a local source-preview candidate. No APK is distributed here. No remote branch, commit, pull request or publication is part of this integration.
+This file records the original source-preview integration and its historical evidence. Later reviewed source changes are tracked in draft PR #2 and the feature notes; no APK is distributed here. Current stage gates and untested Android/emulator/device work are listed in `docs/STAGE_ACCEPTANCE.md`.
 
 ## Provenance and change boundary
 
@@ -44,6 +44,7 @@ Set `JAVA` to an existing Java executable when needed. `SCANNER_HOST_OUTPUT` can
 | PDF preview contract | Exact resolver/sizing statements executed on JVM; static ownership/manifest/revision assertions | Android PdfRenderer behavior, actual page rendering, text search or selection |
 | UTF-8 text core | Production Models/provenance mutation, formatter, SaveJobStore and text target protocol on real synthetic files | In-memory receipt persistence and host JSON/Android seams; not Android AtomicFile/SAF |
 | Text UI callbacks | Extracted current source/confirmation/save-result/recovery methods, real formatter/receipts/files | UI, Store, scheduler and descriptor bridge are synthetic; bridge is structurally checked only |
+| Single-page OCR candidate | Extracted recognition and UI callbacks; actual Models, candidate policy, preflight, recovery files and source hashing | Native OCR, image decoding/rendering, Android UI/clipboard, Store writer, JSON and scheduler are host seams; no recognition quality claim |
 | Earlier public host suite | Pure Java helpers, actual filesystem helpers and selected production methods | Explicit model/decoder/persistence/Android seams remain substitutes |
 
 The old draft harness's obsolete call signature and model fields are updated to the production interface; the production policy is compiled rather than duplicated. PDF revision extraction stops before the newly added preview method. No passing replacement for production logic is supplied.
