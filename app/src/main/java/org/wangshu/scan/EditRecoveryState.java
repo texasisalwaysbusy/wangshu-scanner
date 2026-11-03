@@ -11,6 +11,12 @@ final class EditRecoveryState {
     EditRecoveryState(String owner,EditDraftStore.Draft data){this.owner=owner;this.data=data;}
     void retained(EditDraftStore.Entry entry){this.entry=entry;verified=true;}
     void loaded(EditDraftStore.Draft data){this.data=data;verified=true;}
+    /** Fixed receipt only, even if a loader publishes data concurrently. Never writes raw strings. */
+    void writeReference(Write out){
+        EditDraftStore.Entry receipt=entry;if(receipt==null)throw new IllegalStateException("Missing recovery receipt");
+        out.put("editRecovery.owner",owner);out.put("editRecovery.token",receipt.token);
+        out.put("editRecovery.digest",receipt.digest);out.put("editRecovery.created",Long.toString(receipt.created));
+    }
     void write(Write out){
         out.put("editRecovery.owner",owner);
         EditDraftStore.Entry receipt=entry;

@@ -158,7 +158,7 @@ class OcrEngine { /* PRODUCTION_KEY */ }
 class TextView {String value="";void setText(CharSequence text){value=text.toString();}String getText(){return value;}}
 class EditText extends TextView {
     final List<TextWatcher> listeners=new ArrayList<>();
-    EditText(OcrReviewHost host){host.lastInput=this;}void setTextColor(int color){}void setHintTextColor(int color){}void setTextSize(int size){}void setInputType(int type){}void setGravity(int gravity){}void setMinLines(int n){}void setMaxLines(int n){}void setHint(String value){}void setContentDescription(String value){}
+    EditText(OcrReviewHost host){host.lastInput=this;}void setTextColor(int color){}void setHintTextColor(int color){}void setTextSize(int size){}void setInputType(int type){}void setSaveEnabled(boolean enabled){}void setGravity(int gravity){}void setMinLines(int n){}void setMaxLines(int n){}void setHint(String value){}void setContentDescription(String value){}
     void addTextChangedListener(TextWatcher listener){listeners.add(listener);}
     @Override void setText(CharSequence value){super.setText(value);for(TextWatcher listener:listeners)listener.afterTextChanged(new Editable(value.toString()));}
     void edit(String value){setText(value);}
