@@ -13,7 +13,7 @@ public class OcrAssetsHost {
   for(int i=0;i<4;i++)Files.write(directory.toPath().resolve("pdf.ttf-"+i+".part"),new byte[]{0});
   reject(()->OcrAssetIntegrity.prepare(directory,"pdf.ttf",source));ok(opened[0]==1,"fragment cap opened new source");
   Thread.currentThread().interrupt();try{reject(()->OcrAssetIntegrity.prepare(directory,"eng.traineddata",source));ok(Thread.currentThread().isInterrupted(),"interrupt flag lost");}finally{Thread.interrupted();}
-  Path link=base.resolve("model-link");Files.createSymbolicLink(link,eng);reject(()->OcrAssetIntegrity.verify(link.toFile(),"eng.traineddata"));
+  Path link=base.resolve("model-link");try{Files.createSymbolicLink(link,eng);reject(()->OcrAssetIntegrity.verify(link.toFile(),"eng.traineddata"));}catch(UnsupportedOperationException|FileSystemException|SecurityException denied){System.out.println("SKIP OCR asset symlink fixture unavailable: "+denied.getClass().getSimpleName());}
   System.out.println("PASS "+checks+" actual OCR helper negative/cancellation/retention checks; synthetic invalid assets only, valid pinned model and JNI NOT RUN");
  }
 }

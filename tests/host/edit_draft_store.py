@@ -7,12 +7,16 @@ r=root/('run-'+str(uuid.uuid4()));r.mkdir();(r/'EditDraftStore.java').write_byte
 (r/'Harness.java').write_text(r'''package org.wangshu.scan;
 import java.io.*;import java.nio.file.*;import java.security.*;import java.util.*;
 public class Harness {
- static int tests;static Path root;static final String A="00000000-0000-0000-0000-000000000001",B="00000000-0000-0000-0000-000000000002";
+ static int tests,symlinkSkips;static Path root;static final String A="00000000-0000-0000-0000-000000000001",B="00000000-0000-0000-0000-000000000002";
  interface Op{void go()throws Exception;}
  static void check(boolean b,String msg){if(!b)throw new AssertionError(msg);}
  static void reject(Op op)throws Exception {boolean caught=false;try{op.go();}catch(IOException e){caught=true;}check(caught,"expected IOException");tests++;}
  static EditDraftStore store(String name)throws Exception {Path p=root.resolve(name);Files.createDirectories(p);return new EditDraftStore(p.toFile());}
  static Path file(String name,EditDraftStore.Entry e){return root.resolve(name).resolve("edit-drafts").resolve(A).resolve(e.token+".draft");}
+ static boolean link(Path name,Path target)throws IOException{
+ try{Files.createSymbolicLink(name,target);return true;}
+ catch(UnsupportedOperationException|FileSystemException|SecurityException denied){symlinkSkips++;System.out.println("SKIP symlink fixture unavailable: "+denied.getClass().getSimpleName());return false;}
+ }
  static byte[] hash(byte[] b)throws Exception{return MessageDigest.getInstance("SHA-256").digest(b);}
  static byte[] sealed(int magic,long time,String owner,byte[] baseline,byte[] edited)throws Exception{ByteArrayOutputStream b=new ByteArrayOutputStream();DataOutputStream o=new DataOutputStream(b);o.writeInt(magic);o.writeLong(time);for(byte[] s:new byte[][]{owner.getBytes("UTF-8"),baseline,edited}){o.writeInt(s.length);o.write(s);}o.flush();b.write(hash(b.toByteArray()));return b.toByteArray();}
  static void damaged(String name,byte[] data)throws Exception{EditDraftStore s=store(name);EditDraftStore.Entry e=s.save(A,"base","edit");Files.write(file(name,e),data);List<EditDraftStore.Entry> list=s.list(A);check(list.size()==1&&!list.get(0).valid,"bad record accepted "+name);reject(()->s.load(A,list.get(0)));check(Arrays.equals(data,Files.readAllBytes(file(name,e))),"bad record modified");}
@@ -29,22 +33,22 @@ public class Harness {
  EditDraftStore limit=store("oversize");reject(()->limit.save(A,"x".repeat(4*1024*1024),"e"));check(limit.list(A).isEmpty(),"oversize wrote entries");
  EditDraftStore cancel=store("cancel");Thread.currentThread().interrupt();try{reject(()->cancel.save(A,"b","e"));check(Thread.currentThread().isInterrupted(),"interrupt cleared");}finally{Thread.interrupted();}check(cancel.list(A).isEmpty(),"cancel wrote entry");
  Path outside=root.resolve("outside");Files.createDirectories(outside);Files.writeString(outside.resolve("sentinel"),"unchanged");
- EditDraftStore rootlink=store("rootlink");Files.createSymbolicLink(root.resolve("rootlink/edit-drafts"),outside);reject(()->rootlink.save(A,"b","e"));reject(()->rootlink.list(A));
- EditDraftStore ownerlink=store("ownerlink");Files.createDirectories(root.resolve("ownerlink/edit-drafts"));Files.createSymbolicLink(root.resolve("ownerlink/edit-drafts").resolve(A),outside);reject(()->ownerlink.save(A,"b","e"));reject(()->ownerlink.list(A));
- EditDraftStore leaflink=store("leaflink");EditDraftStore.Entry seed=leaflink.save(A,"b","e");String tok="00000000-0000-0000-0000-000000000003";Path link=root.resolve("leaflink/edit-drafts").resolve(A).resolve(tok+".draft");Files.createSymbolicLink(link,file("leaflink",seed));List<EditDraftStore.Entry> entries=leaflink.list(A);EditDraftStore.Entry bad=entries.stream().filter(x->x.token.equals(tok)).findFirst().get();check(!bad.valid,"leaf symlink valid");reject(()->leaflink.load(A,bad));
+ EditDraftStore rootlink=store("rootlink");if(link(root.resolve("rootlink/edit-drafts"),outside)){reject(()->rootlink.save(A,"b","e"));reject(()->rootlink.list(A));}
+ EditDraftStore ownerlink=store("ownerlink");Files.createDirectories(root.resolve("ownerlink/edit-drafts"));if(link(root.resolve("ownerlink/edit-drafts").resolve(A),outside)){reject(()->ownerlink.save(A,"b","e"));reject(()->ownerlink.list(A));}
+ EditDraftStore leaflink=store("leaflink");EditDraftStore.Entry seed=leaflink.save(A,"b","e");String tok="00000000-0000-0000-0000-000000000003";Path link=root.resolve("leaflink/edit-drafts").resolve(A).resolve(tok+".draft");if(link(link,file("leaflink",seed))){List<EditDraftStore.Entry> entries=leaflink.list(A);EditDraftStore.Entry bad=entries.stream().filter(x->x.token.equals(tok)).findFirst().get();check(!bad.valid,"leaf symlink valid");reject(()->leaflink.load(A,bad));}
  check(Files.readString(outside.resolve("sentinel")).equals("unchanged"),"symlink outside mutated");check(Files.list(outside).count()==1,"outside writes");tests++;
  EditDraftStore unknown=store("unknown");unknown.save(A,"b","e");Files.writeString(root.resolve("unknown/edit-drafts").resolve(A).resolve("alien"),"abc");check(unknown.list(A).stream().anyMatch(x->!x.valid),"unknown not surfaced");tests++;
- EditDraftStore tooMany=store("toomany");tooMany.save(A,"b","e");for(int i=0;i<16;i++)Files.writeString(root.resolve("toomany/edit-drafts").resolve(A).resolve("unknown"+i),"x");reject(()->tooMany.list(A));reject(()->tooMany.save(A,"b","e"));
- Path alias=root.resolve("filesalias");Files.createSymbolicLink(alias,outside);EditDraftStore filesalias=new EditDraftStore(alias.toFile());reject(()->filesalias.list(A));reject(()->filesalias.save(A,"b","e"));
+ EditDraftStore tooMany=store("toomany");tooMany.save(A,"b","e");for(int i=0;i<16;i++)Files.writeString(root.resolve("toomany/edit-drafts").resolve(A).resolve("unknown"+i),"x");check(tooMany.list(A).size()==17,"over-admission inventory remains inspectable");tests++;reject(()->tooMany.save(A,"b","e"));
+ Path alias=root.resolve("filesalias");if(link(alias,outside)){EditDraftStore filesalias=new EditDraftStore(alias.toFile());reject(()->filesalias.list(A));reject(()->filesalias.save(A,"b","e"));}
  byte[] malformed=valid.clone();java.nio.ByteBuffer.wrap(malformed).putInt(12,-1);byte[] payload=Arrays.copyOf(malformed,malformed.length-32);System.arraycopy(hash(payload),0,malformed,payload.length,32);damaged("negative-length",malformed);
  Path cache=root.resolve("export-cache");Files.createDirectories(cache);byte[] originalCheckpoint=Files.readAllBytes(file("roundtrip",e));EditDraftStore.Export exported=s.export(A,e,cache.toFile());check(Arrays.equals(originalCheckpoint,Files.readAllBytes(exported.file.toPath())),"export differs");check(Arrays.equals(originalCheckpoint,Files.readAllBytes(file("roundtrip",e))),"export mutates source");check(exported.digest.equals(e.digest)&&exported.bytes==originalCheckpoint.length,"export identity");check(exported.file.getName().endsWith(".bin"),"export incompatible with save whitelist");tests++;
  reject(()->changes.export(A,selected,cache.toFile()));reject(()->s.export(B,e,cache.toFile()));reject(()->s.export(A,null,cache.toFile()));
- Path cacheLink=root.resolve("export-cache-link");Files.createSymbolicLink(cacheLink,cache);reject(()->s.export(A,e,cacheLink.toFile()));
- Path exportsLinkParent=root.resolve("export-dir-link");Files.createDirectories(exportsLinkParent);Files.createSymbolicLink(exportsLinkParent.resolve("exports"),outside);reject(()->s.export(A,e,exportsLinkParent.toFile()));
+ Path cacheLink=root.resolve("export-cache-link");if(link(cacheLink,cache)){reject(()->s.export(A,e,cacheLink.toFile()));}
+ Path exportsLinkParent=root.resolve("export-dir-link");Files.createDirectories(exportsLinkParent);if(link(exportsLinkParent.resolve("exports"),outside)){reject(()->s.export(A,e,exportsLinkParent.toFile()));}
  Thread.currentThread().interrupt();try{reject(()->s.export(A,e,cache.toFile()));check(Thread.currentThread().isInterrupted(),"export clears cancel");}finally{Thread.interrupted();}
  EditDraftStore.Entry fabricated=new EditDraftStore.Entry(tok,seed.digest,seed.created,null);reject(()->leaflink.export(A,fabricated,cache.toFile()));
  check(Files.list(cache.resolve("exports")).count()==1,"rejected export created records");check(Arrays.equals(originalCheckpoint,Files.readAllBytes(file("roundtrip",e))),"rejected export mutates source");tests++;
- System.out.println("PASS "+tests+" scenarios; actual EditDraftStore with real files; all fixtures retained");
+ System.out.println("PASS "+tests+" scenarios; actual EditDraftStore with real files; all fixtures retained");System.out.println("SYMLINK_SKIPS="+symlinkSkips);
  }
 }
 ''')
