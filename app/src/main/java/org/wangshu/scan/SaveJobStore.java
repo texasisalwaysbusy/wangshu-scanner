@@ -41,12 +41,12 @@ final class SaveJobStore {
     SaveJobStore(Context context){this(context.getCacheDir(),context.getFilesDir(),new Disk(new File(context.getFilesDir(),"single-save-job.bin")),new DiskSources());}
     SaveJobStore(File cache,File files,Persistence persistence,Sources sources){this.cache=cache;this.files=files;this.persistence=persistence;this.sources=sources;}
     static boolean validToken(String token){try{return token!=null&&UUID.fromString(token).toString().equals(token);}catch(IllegalArgumentException e){return false;}}
-    static boolean validMime(String mime){return Arrays.asList("application/pdf","application/zip","image/png","image/jpeg","image/webp","image/heic","image/gif","application/octet-stream").contains(mime);}
+    static boolean validMime(String mime){return Arrays.asList("text/plain","application/pdf","application/zip","image/png","image/jpeg","image/webp","image/heic","image/gif","application/octet-stream").contains(mime);}
     private static boolean rootMatches(File parent,File allowed)throws IOException{
         File absolute=parent.getAbsoluteFile();return (absolute.equals(allowed.getAbsoluteFile())||absolute.equals(allowed.getCanonicalFile()))&&parent.getCanonicalFile().equals(allowed.getCanonicalFile());
     }
     private static String mimeFor(String name){
-        if(name.endsWith(".pdf"))return "application/pdf";if(name.endsWith(".zip"))return "application/zip";if(name.endsWith(".png"))return "image/png";if(name.endsWith(".jpg"))return "image/jpeg";if(name.endsWith(".webp"))return "image/webp";if(name.endsWith(".heic"))return "image/heic";if(name.endsWith(".gif"))return "image/gif";return "application/octet-stream";
+        if(name.endsWith(".txt"))return "text/plain";if(name.endsWith(".pdf"))return "application/pdf";if(name.endsWith(".zip"))return "application/zip";if(name.endsWith(".png"))return "image/png";if(name.endsWith(".jpg"))return "image/jpeg";if(name.endsWith(".webp"))return "image/webp";if(name.endsWith(".heic"))return "image/heic";if(name.endsWith(".gif"))return "image/gif";return "application/octet-stream";
     }
     File ownedPath(File candidate)throws IOException{
         File full=candidate.getAbsoluteFile(),parent=full.getParentFile();String name=full.getName();
@@ -55,7 +55,7 @@ final class SaveJobStore {
         // Android's trusted data-root alias (/data/user/0 versus /data/data) is
         // allowed; a symlink leaf or arbitrary outside alias is not.
         if(!canonical.equals(new File(parent.getCanonicalFile(),name)))throw new IOException("导出源不能是符号链接，未打开保存位置");
-        boolean export=rootMatches(parent,new File(cache,"exports"))&&name.matches(".+\\.(pdf|zip|png|jpg|webp|heic|gif|bin)");
+        boolean export=rootMatches(parent,new File(cache,"exports"))&&name.matches(".+\\.(txt|pdf|zip|png|jpg|webp|heic|gif|bin)");
         boolean camera=(rootMatches(parent,new File(files,"camera"))||rootMatches(parent,new File(cache,"camera")))&&name.startsWith("capture-")&&name.endsWith(".jpg")&&validToken(name.substring(8,name.length()-4));
         if(!export&&!camera)throw new IOException("导出源不是已完成的本地导出或拍照原图，未打开保存位置");return canonical;
     }
@@ -79,7 +79,27 @@ final class SaveJobStore {
     }
     void done(String token)throws IOException{move(token,WRITING,DONE);}
     void cancel(String token)throws IOException{synchronized(LOCK){Job j=require(token);if(j.phase==DONE||j.phase==CANCELLED||j.phase==NEEDS_RESELECT)return;persist(j.phase(j.phase==WRITING?NEEDS_RESELECT:CANCELLED));}}
-    void uncertain(String token)throws IOException{synchronized(LOCK){Job j=require(token);if(j.phase!=DONE)persist(j.phase(NEEDS_RESELECT));}}
+    void uncertain(String token)throws IOException{synchronized(LOCK){Job j=require(token);if(j.phase!=DONE&&j.phase!=CANCELLED)persist(j.phase(NEEDS_RESELECT));}}
+    /** User-confirmed end of a text request, even when its cache was evicted. Never touches targets or sources. */
+    void closeTextRequest(String token)throws IOException{
+        synchronized(LOCK){
+            if(LIVE_WRITERS.containsKey(files.getCanonicalPath()))throw new IOException("文字仍在写入，请等待结果后再结束请求");
+            Job job=require(token);if(!"text/plain".equals(job.mime))throw new IOException("这不是文字保存请求，未结束其他请求");
+            if(job.phase!=DONE&&job.phase!=CANCELLED)persist(job.phase(CANCELLED));
+        }
+    }
+    /** Explicit text-snapshot retry only. Never remembers/reopens a previous destination. */
+    Job reselectText(String token)throws IOException{
+        synchronized(LOCK){
+            if(LIVE_WRITERS.containsKey(files.getCanonicalPath()))throw new IOException("文字仍在写入，请等待结果后再另存新文件");
+            Job job=require(token);if(!"text/plain".equals(job.mime))throw new IOException("这不是文字快照保存请求");
+            File file=ownedPath(new File(job.path));
+            if(!sources.isFile(file)||sources.length(file)!=job.bytes)throw new IOException("文字快照缓存已不可用，请重新导出；原文稿和草稿保留");
+            try(SourceHandle source=sources.open(file)){if(!hash(source.stream(),job.bytes).equals(job.sha))throw new IOException("文字快照校验失败，未打开新位置");}
+            if(job.phase!=DONE&&job.phase!=CANCELLED)persist(job.phase(CANCELLED));
+            return job;
+        }
+    }
     private Job require(String token)throws IOException{if(!validToken(token))throw new IOException("保存请求身份无效，未打开保存位置");Job j=read();if(j==null||!j.token.equals(token))throw new IOException("较早保存请求已过期，未打开旧位置；导出源仍保留");return j;}
     Job read()throws IOException{synchronized(LOCK){
         byte[] bytes=persistence.read();if(bytes==null)return null;if(bytes.length>32768)throw new IOException("保存记录无法读取，请重新选择位置");

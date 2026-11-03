@@ -50,8 +50,7 @@ final class Store {
             byte[] bytes;String savedSnapshot;
             try{
                 JSONObject snapshot=d.json();savedSnapshot=snapshotDigest(snapshot);
-                bytes=snapshot.toString(2).getBytes(StandardCharsets.UTF_8);
-                if(bytes.length>2*1024*1024)throw new IOException("文稿参数超过 2 MB，请拆分文稿后保存");
+                bytes=manifestBytes(snapshot);
             }catch(Exception|Error preflight){d.updated=beforeUpdated;throw preflight;}
             File base;
             try{base=new File(dir(d),"manifest.json");}catch(Exception|Error preflight){d.updated=beforeUpdated;throw preflight;}
@@ -70,6 +69,8 @@ final class Store {
             catch(Exception failure){throw new ManifestFence.Uncertain("发布前后出现异常，候选文件未清理。",failure);}
         }
     }
+    /** The exact formatted JSON encoding used by both preflight and the real writer. */
+    static byte[] manifestBytes(JSONObject snapshot)throws Exception{return SerializedBudget.manifest(snapshot.toString(2));}
     static void requireCertain(Models.Document d)throws ManifestFence.Uncertain{
         if(d==null||d.manifestUncertain)throw new ManifestFence.Uncertain("该文稿已有未确认操作，未继续修改。");
     }

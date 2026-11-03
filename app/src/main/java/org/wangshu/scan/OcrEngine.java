@@ -38,6 +38,20 @@ final class OcrEngine {
         }catch(IOException|RuntimeException|Error problem){failure=problem;throw problem;}
         finally{if(!ready)try{api.recycle();}catch(RuntimeException|Error cleanup){if(failure!=null){if(cleanup!=failure)failure.addSuppressed(cleanup);}else throw cleanup;}}
     }
+    /** Read-only single-page candidate. No Models mutation or manifest writer is invoked. */
+    static String recognizePage(Store store,Models.Document doc,Models.Page page,String language)throws Exception {
+        if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("单页重识别已取消，原文字保留");
+        TessBaseAPI api=open(store.context,language);
+        try{
+            Bitmap bitmap=Renderer.render(store.original(doc,page),page,2400);
+            try{
+                if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("单页重识别已取消，原文字保留");
+                api.setImage(bitmap);String text=requireRecognizedText(api.getUTF8Text());
+                if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("单页重识别已取消，原文字保留");
+                return text;
+            }finally{bitmap.recycle();}
+        }finally{api.recycle();}
+    }
     static void recognize(Store store,Models.Document doc,String language,Exporter.Progress progress) throws Exception {
         TessBaseAPI api=open(store.context,language);
         try{

@@ -41,14 +41,14 @@ class Models {
   List<Page> active(){ArrayList<Page> active=new ArrayList<>();for(Page p:pages)if(!p.removed)active.add(p);return active;}
  }
  static class Page {
-  String id="page",file="originals/page.image",sha256="sha",mode="COLOR",cropReview="saved";
+  String id="page",file="originals/page.image",sha256="sha",mode="COLOR",cropReview="saved",ocrText="",ocrKey="",ocrLanguage="";
   boolean shadows,removed,copyFails;int brightness,rotation;double[] quad={0,0,1,0,1,1,0,1};
   org.json.JSONObject json(){
-   String key=id+"|"+file+"|"+sha256+"|"+mode+"|"+shadows+"|"+removed+"|"+brightness+"|"+rotation+"|"+cropReview+"|"+Arrays.toString(quad);
+   String key=id+"|"+file+"|"+sha256+"|"+mode+"|"+shadows+"|"+removed+"|"+brightness+"|"+rotation+"|"+cropReview+"|"+Arrays.toString(quad)+"|"+ocrText+"|"+ocrKey+"|"+ocrLanguage;
    decoded.put(key,this);return new org.json.JSONObject(key);
   }
   static Page from(org.json.JSONObject j)throws IOException{Page p=decoded.get(j.toString());if(p==null)throw new IOException("unknown synthetic encoding");return p;}
-  Page copy()throws IOException{if(copyFails)throw new IOException("injected model copy failure");Page q=new Page();q.id=id;q.file=file;q.sha256=sha256;q.mode=mode;q.cropReview=cropReview;q.shadows=shadows;q.removed=removed;q.brightness=brightness;q.rotation=rotation;q.quad=quad.clone();return q;}
+  Page copy()throws IOException{if(copyFails)throw new IOException("injected model copy failure");Page q=new Page();q.id=id;q.file=file;q.sha256=sha256;q.mode=mode;q.cropReview=cropReview;q.shadows=shadows;q.removed=removed;q.brightness=brightness;q.rotation=rotation;q.quad=quad.clone();q.ocrText=ocrText;q.ocrKey=ocrKey;q.ocrLanguage=ocrLanguage;return q;}
   boolean cropConfirmed(){return cropReview.equals("reviewed");}
  }
 }
@@ -78,6 +78,13 @@ public class DraftUiReview {
   check(a.builds==1&&a.previews==1,"one build/preview");check(Arrays.equals(a.renderedQuad,p.quad)&&a.renderedRotation==2&&a.renderedBrightness==17,"transform");
   check(a.originalPage==saved&&a.originalPageBaseline.equals(baseline),"current baseline retained");
   check(a.editorSession!=null&&a.editorDocumentVersion.equals("v1")&&a.screen==2,"real editor session/version wired");
+ });
+ run("restored OCR correction retains literal text and stale recognition provenance",()->{
+  Models.Page saved=new Models.Page(),p=changed();p.ocrText="中文纠错\nE=mc²\n𠮷 😀  ";p.ocrKey="stale-key";p.ocrLanguage="chi_sim+eng";
+  DraftUiReview a=setup(saved);restore(a,p,saved.json().toString(),"v1",false);
+  check(a.draft.ocrText.equals(p.ocrText)&&a.draft.ocrKey.equals("stale-key")&&a.draft.ocrLanguage.equals("chi_sim+eng"),"OCR fields survive actual restore/open seam");
+  check(saved.ocrText.isEmpty()&&saved.ocrKey.isEmpty(),"saved page never overwritten by restoring");
+  a.draft.ocrText="continued correction";check(!p.ocrText.equals(a.draft.ocrText),"restored OCR edit independent");
  });
  run("normal editor keeps saved controls and independent copy",()->{
   Models.Page saved=changed();DraftUiReview a=setup(saved);a.openEditor(saved);check(a.builds==1&&a.previews==1&&a.cancels==1,"normal build");

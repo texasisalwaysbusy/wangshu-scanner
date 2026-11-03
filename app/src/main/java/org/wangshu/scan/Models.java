@@ -9,7 +9,7 @@ import java.util.UUID;
 
 final class Models {
     static final class Page {
-        String id=UUID.randomUUID().toString(), file="",sha256="",mode="COLOR",ocrText="",ocrKey="",ocrLanguage="",cropReview="";
+        String id=UUID.randomUUID().toString(), file="",sha256="",mode="COLOR",ocrText="",ocrKey="",ocrLanguage="",ocrOrigin="",cropReview="";
         double[] quad=Geometry.full();
         int rotation=0,brightness=0,bias=8;
         boolean shadows=false,removed=false;
@@ -19,7 +19,7 @@ final class Models {
         Page copy() throws JSONException { return from(json()); }
         JSONObject json() throws JSONException {
             JSONObject o=new JSONObject();o.put("id",id);o.put("file",file);o.put("sha256",sha256);o.put("mode",mode);
-            o.put("quad",new JSONArray(quad));o.put("rotation",rotation);o.put("cropReview",cropReview);o.put("brightness",brightness);o.put("bias",bias);o.put("shadows",shadows);o.put("removed",removed);o.put("ocrText",ocrText);o.put("ocrKey",ocrKey);o.put("ocrLanguage",ocrLanguage);return o;
+            o.put("quad",new JSONArray(quad));o.put("rotation",rotation);o.put("cropReview",cropReview);o.put("brightness",brightness);o.put("bias",bias);o.put("shadows",shadows);o.put("removed",removed);o.put("ocrText",ocrText);o.put("ocrKey",ocrKey);o.put("ocrLanguage",ocrLanguage);if(!ocrOrigin.isEmpty())o.put("ocrOrigin",ocrOrigin);return o;
         }
         static Page from(JSONObject o) throws JSONException {
             Page p=new Page();p.id=o.getString("id");p.file=o.getString("file");p.sha256=o.optString("sha256");p.mode=o.optString("mode","COLOR");
@@ -27,7 +27,7 @@ final class Models {
             validQuad=validQuad&&Geometry.valid(p.quad);if(!validQuad)p.quad=Geometry.full();
             p.rotation=((o.optInt("rotation")%4)+4)%4;p.brightness=Math.max(-40,Math.min(40,o.optInt("brightness")));p.bias=Math.max(1,Math.min(35,o.optInt("bias",8)));
             if(!p.mode.equals("COLOR")&&!p.mode.equals("GRAY")&&!p.mode.equals("BW"))p.mode="COLOR";
-            p.cropReview=validQuad?o.optString("cropReview"):"";p.shadows=o.optBoolean("shadows");p.removed=o.optBoolean("removed");p.ocrText=o.optString("ocrText");p.ocrKey=o.optString("ocrKey");p.ocrLanguage=o.optString("ocrLanguage");return p;
+            p.cropReview=validQuad?o.optString("cropReview"):"";p.shadows=o.optBoolean("shadows");p.removed=o.optBoolean("removed");p.ocrText=o.optString("ocrText");p.ocrKey=o.optString("ocrKey");p.ocrLanguage=o.optString("ocrLanguage");String origin=o.optString("ocrOrigin");p.ocrOrigin=origin.equals("machine")||origin.equals("manual")?origin:"";return p;
         }
     }
     static final class Document {
