@@ -1,0 +1,272 @@
+--- a/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java
++++ b/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java
+@@ -4,6 +4,7 @@
+ import java.util.*;
+ import java.util.concurrent.*;
+ import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicReference;
+ import java.util.function.Consumer;
+ 
+ /**
+@@ -184,6 +185,7 @@
+         Timeout timeout;
+         synchronized(lock){stop(p,"TIMEOUT",null);timeout=new Timeout(p);}
+         final Timeout metadata=timeout;
++        AtomicReference<Timeout> capturedTimeout=new AtomicReference<>(metadata);
+         // Stack collection and the listener share the existing diagnostic budget.
+         // A stalled runtime stack reader cannot prevent STOPPED/TERMINAL handling.
+         final long diagnosticDeadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(evidenceBudgetMs);
+@@ -191,6 +193,7 @@
+             StackTraceElement[] frames=metadata.target==null?new StackTraceElement[0]:stackCapture.read(metadata.target);
+             if(System.nanoTime()-diagnosticDeadline>=0)throw new TimeoutException();
+             Timeout captured=new Timeout(metadata,frames);
++            capturedTimeout.set(captured);
+             if(listener!=null)listener.onTimeout(captured);
+             return captured;
+         });
+@@ -198,6 +201,7 @@
+         Exception diagnosticFailure=null;
+         try{timeout=diagnostic.get(evidenceBudgetMs,TimeUnit.MILLISECONDS);}
+         catch(Exception error){
++            timeout=capturedTimeout.get();
+             diagnosticFailure=error;
+             synchronized(lock){diagnosticErrors.add(error instanceof ExecutionException&&error.getCause()!=null?error.getCause().getClass().getName():error.getClass().getName());}
+             if(error instanceof InterruptedException)Thread.currentThread().interrupt();
+--- /dev/null
++++ b/tests/CapturedTimeoutTests.java
+@@ -0,0 +1,75 @@
++package org.wangshu.scan;
++
++import java.io.IOException;
++import java.util.*;
++import java.util.concurrent.*;
++import java.util.concurrent.atomic.*;
++
++/** Host-only red/green check: keep acquired frames if the diagnostic listener fails. */
++public final class CapturedTimeoutTests {
++    static int checks;
++    static void check(boolean value,String message){checks++;if(!value)throw new AssertionError(message);}
++    public static void main(String[] args)throws Exception {
++        boolean repaired=args[0].equals("repaired");
++        for(boolean blocked:new boolean[]{false,true}){
++            CountDownLatch actionRelease=new CountDownLatch(1),listenerRelease=new CountDownLatch(1);AtomicInteger calls=new AtomicInteger();
++            BoundedStage c=new BoundedStage("12345678-1234-1234-1234-123456789abc",e->{},timeout->{
++                calls.incrementAndGet();check(!timeout.stackFrames.isEmpty(),"listener received captured frames before failure");
++                if(blocked)listenerRelease.await();else throw new IOException("Synthetic listener failure");
++            },150);
++            long start=System.nanoTime();
++            try{
++                BoundedStage.StageTimeoutException caught=null;
++                try{c.run("startup","BLOCKED_TARGET",80,()->{actionRelease.await();return null;});throw new AssertionError("timeout missing");}
++                catch(BoundedStage.StageTimeoutException expected){caught=expected;}
++                check(calls.get()==1,"exactly one listener invocation");
++                boolean framesRetained=caught.timeout.stackFrames.stream().anyMatch(frame->frame.getClassName().equals(CapturedTimeoutTests.class.getName()));
++                check(framesRetained==repaired,"acquired frames retained according to expected revision");
++                check(caught.getSuppressed().length==1,"diagnostic failure remains attached");
++                check(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start)<1500,"listener failure did not extend the existing bound");
++                c.finish("STOPPED");List<Map<String,Object>> events=c.events();
++                check(events.stream().filter(e->"TERMINAL".equals(e.get("kind"))).count()==1,"one STOPPED terminal");
++                Object errors=events.get(events.size()-1).get("diagnostic_errors");check(errors instanceof List<?> && ((List<?>)errors).size()==1,"diagnostic failure recorded");
++                System.out.println("PASS revision="+args[0]+" listener="+(blocked?"blocked":"throws")+" acquired_frames_retained="+framesRetained+" android_executed=false");
++            }finally{actionRelease.countDown();listenerRelease.countDown();}
++        }
++        captureFailure();lateCapture();sharedBudget();
++        System.out.println("PASS captured-timeout checks="+checks+"; Android NOT_RUN");
++    }
++
++    static void captureFailure()throws Exception {
++        CountDownLatch actionRelease=new CountDownLatch(1);AtomicInteger listeners=new AtomicInteger();
++        BoundedStage c=new BoundedStage("12345678-1234-1234-1234-123456789abc",e->{},t->listeners.incrementAndGet(),150,target->{throw new IOException("Synthetic capture failure");});
++        try{
++            try{c.run("startup","CAPTURE_FAIL",80,()->{actionRelease.await();return null;});throw new AssertionError("timeout missing");}
++            catch(BoundedStage.StageTimeoutException e){check(e.timeout.stackFrames.isEmpty(),"failed capture has metadata only");check(e.timeout.id.equals("CAPTURE_FAIL")&&e.timeout.budgetMs==80,"failed capture preserves exact timeout identity");check(e.getSuppressed().length==1,"capture failure attached");}
++            check(listeners.get()==0,"failed capture never calls listener");c.finish("STOPPED");
++            System.out.println("PASS capture_failure_metadata_only=true listener_calls=0 android_executed=false");
++        }finally{actionRelease.countDown();}
++    }
++
++    static void lateCapture()throws Exception {
++        CountDownLatch actionRelease=new CountDownLatch(1),captureRelease=new CountDownLatch(1);AtomicInteger listeners=new AtomicInteger();AtomicReference<Thread> diagnostic=new AtomicReference<>();
++        BoundedStage c=new BoundedStage("12345678-1234-1234-1234-123456789abc",e->{},t->listeners.incrementAndGet(),150,target->{diagnostic.set(Thread.currentThread());captureRelease.await();return new StackTraceElement[]{new StackTraceElement("Host","late","Host.java",1)};});
++        try{
++            BoundedStage.StageTimeoutException caught=null;
++            try{c.run("startup","CAPTURE_LATE",80,()->{actionRelease.await();return null;});throw new AssertionError("timeout missing");}catch(BoundedStage.StageTimeoutException e){caught=e;}
++            check(caught.timeout.stackFrames.isEmpty(),"pending capture initially has metadata only");BoundedStage.Timeout immutable=caught.timeout;c.finish("STOPPED");
++            captureRelease.countDown();Thread worker=diagnostic.get();check(worker!=null,"diagnostic caller recorded");worker.join(3000);check(!worker.isAlive(),"diagnostic caller exited before late-listener assertion");
++            check(listeners.get()==0,"expired capture never calls listener");check(caught.timeout==immutable&&caught.timeout.stackFrames.isEmpty(),"already thrown timeout never changes after late capture");
++            System.out.println("PASS expired_capture_listener_calls=0 thrown_timeout_immutable=true android_executed=false");
++        }finally{captureRelease.countDown();actionRelease.countDown();}
++    }
++
++    static void sharedBudget()throws Exception {
++        CountDownLatch actionRelease=new CountDownLatch(1),listenerRelease=new CountDownLatch(1);AtomicInteger listeners=new AtomicInteger();AtomicReference<Thread> diagnostic=new AtomicReference<>();
++        BoundedStage c=new BoundedStage("12345678-1234-1234-1234-123456789abc",e->{},t->{listeners.incrementAndGet();listenerRelease.await();},500,target->{diagnostic.set(Thread.currentThread());Thread.sleep(300);return new StackTraceElement[]{new StackTraceElement("Host","captured","Host.java",1)};});
++        long start=System.nanoTime();
++        try{
++            try{c.run("startup","SHARED_BUDGET",100,()->{actionRelease.await();return null;});throw new AssertionError("timeout missing");}catch(BoundedStage.StageTimeoutException expected){checks++;}
++            long elapsed=TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start);check(listeners.get()==1,"listener starts after successful capture");check(elapsed>=500&&elapsed<850,"capture and listener share 500ms, not separate 500ms budgets");c.finish("STOPPED");
++            listenerRelease.countDown();Thread worker=diagnostic.get();worker.join(3000);check(!worker.isAlive(),"budget-probe diagnostic exits safely");
++            System.out.println("PASS capture_and_listener_budget_ms=500 elapsed_ms="+elapsed+" android_executed=false");
++        }finally{listenerRelease.countDown();actionRelease.countDown();}
++    }
++}
+--- /dev/null
++++ b/tests/java_source_helpers.py
+@@ -0,0 +1,74 @@
++"""Dependency-free Java source-body helpers; not an Android parser/compiler."""
++import re
++
++def java_mask(source: str, *, literals: bool = True) -> str:
++    """Preserve offsets/newlines while masking Java comments and optionally literals."""
++    out = list(source)
++    state = "code"
++    escaped = False
++    i = 0
++    while i < len(source):
++        char, pair = source[i], source[i:i + 2]
++        if state == "code":
++            if pair in {"//", "/*"}:
++                state = "line" if pair == "//" else "block"
++                out[i:i + 2] = "  "
++                i += 2
++                continue
++            if char in {'"', "'"}:
++                state = char
++                escaped = False
++                if literals:
++                    out[i] = " "
++        elif state == "line":
++            if char == "\n":
++                state = "code"
++            else:
++                out[i] = " "
++        elif state == "block":
++            if pair == "*/":
++                out[i:i + 2] = "  "
++                state = "code"
++                i += 2
++                continue
++            if char != "\n":
++                out[i] = " "
++        else:
++            if literals and char != "\n":
++                out[i] = " "
++            if escaped:
++                escaped = False
++            elif char == "\\":
++                escaped = True
++            elif char == state:
++                state = "code"
++        i += 1
++    return "".join(out)
++
++
++def java_body(source: str, declaration: str) -> str:
++    """Extract a declaration body; braces in strings/comments cannot close it."""
++    masked = java_mask(source)
++    match = re.search(declaration, masked)
++    if match is None:
++        raise AssertionError("Java declaration missing: " + declaration)
++    start = masked.index("{", match.end())
++    depth = 1
++    for index in range(start + 1, len(masked)):
++        depth += (masked[index] == "{") - (masked[index] == "}")
++        if depth == 0:
++            return source[start + 1:index]
++    raise AssertionError("Unclosed Java declaration: " + declaration)
++
++
++def method(source: str, name: str) -> str:
++    return java_body(source, rf"\b(?:void|Object|EditText|String)\s+{name}\s*\([^)]*\)")
++
++
++def preparation_helper_calls(source: str) -> set[str]:
++    """Reject activation of retained functional helpers, rather than banning their text."""
++    forbidden = {"editAll", "candidate", "exports", "recreate", "txt", "open", "text", "crop", "refreshDoc", "click", "record", "check"}
++    active = java_mask(method(source, "onStart") + method(source, "setup"))
++    return {name for name in forbidden if re.search(rf"\b{name}\s*\(", active)}
++
++
+--- /dev/null
++++ b/tests/test_prepare_source_contract.py
+@@ -0,0 +1,80 @@
++"""Standalone tooling source contracts, not Android compilation or acceptance."""
++from pathlib import Path
++import importlib.util
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++TOOL = ROOT / "tools/scanner_instrumentation"
++spec = importlib.util.spec_from_file_location("java_source_helpers", ROOT / "tests/java_source_helpers.py")
++legacy = importlib.util.module_from_spec(spec);spec.loader.exec_module(legacy)
++
++
++class SourceContracts(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.runner = (TOOL / "android/ScanInstrumentation.java").read_text()
++        cls.control = (TOOL / "java/org/wangshu/scan/BoundedStage.java").read_text()
++        cls.writer = (TOOL / "java/org/wangshu/scan/DiagnosticFiles.java").read_text()
++
++    def test_capture_constructor_only_takes_metadata(self):
++        body = legacy.java_body(self.control, r"private Timeout\(Phase p\)")
++        self.assertNotIn("getStackTrace", legacy.java_mask(body, literals=False))
++        self.assertIn("Collections.emptyList()", body)
++
++    def test_published_snapshot_precedes_listener_and_uses_one_budget(self):
++        body = legacy.java_body(self.control, r"private StageTimeoutException timedOut\(Phase p\)")
++        self.assertLess(body.index("diagnosticDeadline"), body.index("stackCapture.read"))
++        self.assertLess(body.index("System.nanoTime()-diagnosticDeadline"), body.index("capturedTimeout.set(captured)"))
++        self.assertLess(body.index("capturedTimeout.set(captured)"), body.index("listener.onTimeout(captured)"))
++        self.assertIn("timeout=capturedTimeout.get();", body)
++        self.assertEqual(body.count("diagnostic.get(evidenceBudgetMs,TimeUnit.MILLISECONDS)"), 1)
++
++    def test_runner_uses_unique_writer_and_preserves_identity(self):
++        body = legacy.method(self.runner, "programStacks")
++        self.assertIn('DiagnosticFiles.write(evidence.toPath(),timeout.stage,timeout.id,', body)
++        for field in ['.put("format",DiagnosticFiles.FORMAT)', '.put("runId",runId)', '.put("stage",timeout.stage)', '.put("id",timeout.id)', '.put("contains_document_text",false)']:
++            self.assertIn(field, body)
++        self.assertNotIn('saveJson("program-stacks.json"', body)
++        self.assertIn('catch(IOException failure){evidenceFailed=true;throw failure;}', body)
++
++    def test_target_frames_and_privacy_contract_remain(self):
++        body = legacy.method(self.runner, "programStacks")
++        self.assertIn("timeout.stackFrames", body)
++        self.assertIn('.put("role","timed-out-operation")', body)
++        self.assertNotRegex(legacy.java_mask(body), r"\b(?:getMessage|getLocalizedMessage|getDeclaredField|getLocalVariables)\s*\(")
++
++    def test_writer_exclusive_creation_and_force(self):
++        self.assertIn("StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE", self.writer)
++        self.assertIn("output.force(true)", self.writer)
++        self.assertNotIn("TRUNCATE_EXISTING", self.writer)
++        self.assertNotIn("createDirectories", self.writer)
++        self.assertIn("Locale.ROOT", self.writer)
++
++    def test_monitor_change_not_silently_included(self):
++        body = legacy.method(self.runner, "setup")
++        self.assertIn('waitForMonitorWithTimeout(monitor,20000)', body)
++        self.assertIn('control.run("preparation","ACTIVITY_ARRIVAL",21000', body)
++
++    def test_entry_scope_and_acceptance_unchanged(self):
++        body = legacy.method(self.runner, "onStart")
++        self.assertIn('control.run("preparation","SETUP",300000', body)
++        self.assertIn('result.putBoolean("product_acceptance",false)', body)
++        self.assertIn('result.putInt("case_assertions",0)', body)
++        self.assertEqual(legacy.preparation_helper_calls(self.runner), set())
++
++    def test_fixture_contract_explicit_and_unchanged(self):
++        source = (TOOL / "android/Fixtures.java").read_text()
++        self.assertIn('getContext().getAssets().openFd("fixtures/"+n+".png")', source)
++        self.assertIn('!n.matches("[ABC]")', source)
++        self.assertNotIn("uses-permission", (TOOL / "android/AndroidManifest.xml").read_text())
++
++    def test_collector_reads_all_matching_names_and_legacy(self):
++        source = (ROOT / "tools/collect_prepare_stacks.py").read_text()
++        self.assertIn('directory.iterdir()', source)
++        self.assertIn('p.name.startswith("program-stacks")', source)
++        self.assertIn('path.name == "program-stacks.json"', source)
++        self.assertIn('EXPECTED_STACK_MISSING', source)
++
++
++if __name__ == "__main__":
++    unittest.main()

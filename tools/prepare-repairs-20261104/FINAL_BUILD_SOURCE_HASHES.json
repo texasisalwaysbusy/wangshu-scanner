@@ -1,0 +1,30 @@
+{
+  "tools/scanner_instrumentation/android/ScanInstrumentation.java": {
+    "bytes": 22085,
+    "sha256": "0a4346e168fa4c00b5cffd8fb659e64bb42e2e4c70e10a6fb7f0115843ef6133"
+  },
+  "tools/scanner_instrumentation/android/Fixtures.java": {
+    "bytes": 1139,
+    "sha256": "068a1b0cff00c546fbe52ae0c6687e6acb5802b41c9cf99daf638c4432784cd6"
+  },
+  "tools/scanner_instrumentation/android/AndroidManifest.xml": {
+    "bytes": 336,
+    "sha256": "34d4a59403cd49c92655b7bc40d48910fa492ecd3fe81b7892c6a5274c5a5861"
+  },
+  "tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java": {
+    "bytes": 18269,
+    "sha256": "a8c5b0d317f2a3ac4acd49178b42f99283277adf3b095538d905a96c7f25d8bd"
+  },
+  "tools/scanner_instrumentation/java/org/wangshu/scan/DiagnosticFiles.java": {
+    "bytes": 1878,
+    "sha256": "bef4e799a312adad39e40f62cbae8fca878d767bd4ae340c2d47e0beff2a8c2d"
+  },
+  "tools/scanner_instrumentation_host.py": {
+    "bytes": 21738,
+    "sha256": "690262e408f875d9f4114c8f09f097fc03adb5a0de275b9e18134a5b4b2d7ed4"
+  },
+  "tools/collect_prepare_stacks.py": {
+    "bytes": 5542,
+    "sha256": "ad3da6d3016ce0cd2e686712aeeeed61defa4b299e1048c80949e8fb2dfadb2a"
+  }
+}

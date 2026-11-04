@@ -1,0 +1,17 @@
+PASS success emits Python-compatible startup preparation owner case and one terminal
+PASS budgets identifiers and canonical UUIDs reject before action or event
+PASS running daemon timeout is unknown and late completion cannot emit success
+PASS posted work not started before deadline is prevented from running later
+PASS already running posted thread is never interrupted or declared cancelled
+PASS blocking dispatcher is bounded and cannot post executable work after timeout
+PASS dispatcher exception never authorizes queued product work
+PASS action exception preserves type and emits no exception message or false completion
+PASS nested timeout closes child then parent once and prevents further preparation
+PASS duplicate terminal is idempotent and all post-terminal operations reject
+PASS failed assertion counts exactly once and cannot produce PREPARED
+PASS owner and phase ordering never fabricate synthetic preparation
+PASS evidence sink exception prevents action and retains stopped evidence
+PASS uncertain terminal delivery is retained as STOPPED and never replayed
+PASS blocked evidence sink has a bounded wait and never starts product work
+PASS diagnostic failures and blocked listeners are bounded and never expose messages
+SCENARIOS 16 ASSERTIONS 133 FAILED 0; production pure Java stage controller, real controlled daemon threads; no Android/ADB/device/product mutation

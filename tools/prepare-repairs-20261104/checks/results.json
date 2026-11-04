@@ -1,0 +1,67 @@
+{
+  "checks": [
+    {
+      "label": "baseline-compile",
+      "exit_code": 0
+    },
+    {
+      "label": "baseline-capture_only",
+      "exit_code": 0
+    },
+    {
+      "label": "baseline-sink_and_capture",
+      "exit_code": 0
+    },
+    {
+      "label": "before003-compile",
+      "exit_code": 0
+    },
+    {
+      "label": "before003-captured-frames",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-compile",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-capture_only",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-sink_and_capture",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-bounded-tests",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-boundary-tests",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-writer-tests",
+      "exit_code": 0
+    },
+    {
+      "label": "candidate-captured-frames",
+      "exit_code": 0
+    },
+    {
+      "label": "collector-tests",
+      "exit_code": 0
+    },
+    {
+      "label": "source-contracts",
+      "exit_code": 0
+    }
+  ],
+  "all_started_checks_pass": true,
+  "expected_check_entries": 14,
+  "all_expected_checks_ran": true,
+  "android_executed": false,
+  "product_acceptance": false,
+  "phone_root_cause_proven": false,
+  "java_api_fence": "NOT_RUN; JDK21 source/target17 only"
+}

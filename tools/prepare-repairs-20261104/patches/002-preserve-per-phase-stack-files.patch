@@ -1,0 +1,350 @@
+--- a/tools/scanner_instrumentation/android/ScanInstrumentation.java
++++ b/tools/scanner_instrumentation/android/ScanInstrumentation.java
+@@ -139,7 +139,8 @@
+    }
+    JSONArray targetFrames=new JSONArray();for(StackTraceElement frame:timeout.stackFrames)targetFrames.put(frame.toString());
+    rows.put(new JSONObject().put("role","timed-out-operation").put("target",timeout.targetThread).put("stage",timeout.stage).put("id",timeout.id).put("operation_state",timeout.operationState).put("frames",targetFrames));
+-   saveJson("program-stacks.json",new JSONObject().put("runId",runId).put("stacks",rows).put("contains_document_text",false));
++   JSONObject record=new JSONObject().put("format",DiagnosticFiles.FORMAT).put("runId",runId).put("stage",timeout.stage).put("id",timeout.id).put("stacks",rows).put("contains_document_text",false);
++   try{DiagnosticFiles.write(evidence.toPath(),timeout.stage,timeout.id,record.toString().getBytes(StandardCharsets.UTF_8));}catch(IOException failure){evidenceFailed=true;throw failure;}
+  }
+  void emit(Map<String,Object> event)throws Exception{
+    JSONObject object=new JSONObject(event);byte[] line=(object.toString()+"\n").getBytes(StandardCharsets.UTF_8);IOException diskFailure=null;
+--- /dev/null
++++ b/tools/scanner_instrumentation/java/org/wangshu/scan/DiagnosticFiles.java
+@@ -0,0 +1,41 @@
++package org.wangshu.scan;
++
++import java.io.IOException;
++import java.nio.ByteBuffer;
++import java.nio.channels.FileChannel;
++import java.nio.file.Files;
++import java.nio.file.LinkOption;
++import java.nio.file.Path;
++import java.nio.file.StandardOpenOption;
++import java.util.Locale;
++import java.util.Objects;
++
++/** Per-phase diagnostic files. A failed or duplicate write never replaces evidence.
++ * The caller owns the fresh run directory. Partial files remain for diagnosis.
++ * This is best-effort diagnostic I/O, never an acceptance or cancellation receipt.
++ */
++public final class DiagnosticFiles {
++    public static final String FORMAT="wangshu.scan.program-stacks.v2";
++    private DiagnosticFiles() {}
++
++    public static String filename(String stage,String id) {
++        if(!"startup".equals(stage)&&!"preparation".equals(stage)&&!"case".equals(stage))
++            throw new IllegalArgumentException("Invalid diagnostic phase");
++        if(id==null||!id.matches("[A-Z][A-Z0-9_]{0,79}"))
++            throw new IllegalArgumentException("Invalid diagnostic identifier");
++        return "program-stacks-"+stage+"-"+id.toLowerCase(Locale.ROOT).replace('_','-')+".json";
++    }
++
++    public static Path write(Path directory,String stage,String id,byte[] content)throws IOException {
++        String name=filename(stage,id);Objects.requireNonNull(content,"content");
++        if(directory==null||!Files.isDirectory(directory,LinkOption.NOFOLLOW_LINKS))
++            throw new IOException("Existing run evidence directory required");
++        Path destination=directory.resolve(name);
++        try(FileChannel output=FileChannel.open(destination,StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE)) {
++            ByteBuffer bytes=ByteBuffer.wrap(content);
++            while(bytes.hasRemaining())output.write(bytes);
++            output.force(true);
++        }
++        return destination;
++    }
++}
+--- /dev/null
++++ b/tools/collect_prepare_stacks.py
+@@ -0,0 +1,119 @@
++"""Inspect all already-collected stack files from one explicit preparation run.
++
++Read-only. No device access, commands, network, copying, cleanup or acceptance.
++Supports legacy program-stacks.json and per-phase v2 files. A collector must copy
++the entire run evidence directory, not only the legacy fixed-name file.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import re
++import uuid
++
++FORMAT = "wangshu.scan.program-stacks.v2"
++ID = re.compile(r"[A-Z][A-Z0-9_]{0,79}\Z")
++MAX_BYTES = 2 * 1024 * 1024
++MAX_FILES = 128
++
++
++def filename(stage, identity):
++    if stage not in {"startup", "preparation", "case"} or not isinstance(identity, str) or not ID.fullmatch(identity):
++        raise ValueError("INVALID_PHASE_IDENTITY")
++    return "program-stacks-" + stage + "-" + identity.lower().replace("_", "-") + ".json"
++
++
++def unique_object(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError("DUPLICATE_JSON_KEY")
++        result[key] = value
++    return result
++
++
++def invalid_constant(value):
++    raise ValueError("NONSTANDARD_JSON_NUMBER")
++
++
++def inspect(directory: Path, run_id: str, expected_ids=()):
++    if not isinstance(run_id, str) or str(uuid.UUID(run_id)) != run_id:
++        raise ValueError("CANONICAL_RUN_ID_REQUIRED")
++    expected = list(expected_ids)
++    if len(set(expected)) != len(expected) or any(not isinstance(x, str) or not ID.fullmatch(x) for x in expected):
++        raise ValueError("INVALID_EXPECTED_IDS")
++    report = {"run_id": run_id, "records": [], "errors": [], "warnings": [],
++              "directory_snapshot_only": True, "product_acceptance": False,
++              "durability_confirmed": False, "expected_ids": expected}
++    if directory.is_symlink() or not directory.is_dir():
++        report["errors"].append({"code": "RUN_DIRECTORY_REQUIRED"})
++        return report
++    candidates = sorted(p for p in directory.iterdir() if p.name.startswith("program-stacks"))
++    if not candidates:
++        report["errors"].append({"code": "NO_STACK_FILES"})
++    if len(candidates) > MAX_FILES:
++        report["errors"].append({"code": "TOO_MANY_STACK_FILES", "count": len(candidates)})
++        return report
++    seen = {}
++    for path in candidates:
++        try:
++            if path.is_symlink() or not path.is_file():
++                raise ValueError("REGULAR_FILE_REQUIRED")
++            with path.open("rb") as source:
++                raw = source.read(MAX_BYTES + 1)
++            if len(raw) > MAX_BYTES:
++                raise ValueError("STACK_FILE_TOO_LARGE")
++            record = json.loads(raw.decode("utf-8"), object_pairs_hook=unique_object, parse_constant=invalid_constant)
++            if not isinstance(record, dict) or record.get("runId") != run_id or record.get("contains_document_text") is not False:
++                raise ValueError("RUN_OR_PRIVACY_MARKER_MISMATCH")
++            rows = record.get("stacks")
++            if not isinstance(rows, list) or not 1 <= len(rows) <= 256:
++                raise ValueError("INVALID_STACK_ROWS")
++            for row in rows:
++                if not isinstance(row, dict) or not isinstance(row.get("role"), str):
++                    raise ValueError("INVALID_STACK_ROW")
++                frames = row.get("frames")
++                if not isinstance(frames, list) or len(frames) > 64 or any(not isinstance(f, str) or len(f) > 4096 for f in frames):
++                    raise ValueError("INVALID_STACK_FRAMES")
++            targets = [row for row in rows if row["role"] == "timed-out-operation"]
++            if len(targets) != 1:
++                raise ValueError("ONE_TIMEOUT_TARGET_REQUIRED")
++            stage, identity = targets[0].get("stage"), targets[0].get("id")
++            expected_name = filename(stage, identity)
++            if path.name == "program-stacks.json" and "format" not in record:
++                version = "legacy"
++            elif record.get("format") == FORMAT and path.name == expected_name:
++                if record.get("stage") != stage or record.get("id") != identity:
++                    raise ValueError("FILE_TARGET_IDENTITY_MISMATCH")
++                version = "v2"
++            else:
++                raise ValueError("UNSUPPORTED_NAME_OR_FORMAT")
++            if identity in seen:
++                report["warnings"].append({"code": "MULTIPLE_RECORDS_FOR_PHASE", "id": identity})
++            seen[identity] = True
++            report["records"].append({"file": path.name, "format": version, "stage": stage, "id": identity,
++                                      "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "stack_rows": len(rows)})
++        except (OSError, ValueError, UnicodeError, KeyError, TypeError):
++            # No exception messages or stack contents are copied into the report.
++            report["errors"].append({"file": path.name, "code": "INVALID_OR_UNREADABLE_STACK_FILE"})
++    for identity in expected:
++        if identity not in seen:
++            report["errors"].append({"code": "EXPECTED_STACK_MISSING", "id": identity})
++    return report
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("directory", type=Path)
++    parser.add_argument("--run-id", required=True)
++    parser.add_argument("--expected-id", action="append", default=[])
++    args = parser.parse_args()
++    result = inspect(args.directory, args.run_id, args.expected_id)
++    print(json.dumps(result, indent=2))
++    raise SystemExit(2 if result["errors"] else 0)
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/tests/DiagnosticFilesTests.java
+@@ -0,0 +1,62 @@
++package org.wangshu.scan;
++
++import java.io.IOException;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.*;
++import java.util.*;
++import java.util.concurrent.*;
++import java.util.concurrent.atomic.*;
++
++/** Production diagnostic writer on the host filesystem; no Android execution. */
++public final class DiagnosticFilesTests {
++    static int checks;
++    static final String RUN="12345678-1234-1234-1234-123456789abc";
++    static void check(boolean value,String message){checks++;if(!value)throw new AssertionError(message);}
++    static byte[] record(String id){return ("{\"format\":\""+DiagnosticFiles.FORMAT+"\",\"runId\":\""+RUN+"\",\"stage\":\"preparation\",\"id\":\""+id+"\",\"contains_document_text\":false,\"stacks\":[{\"role\":\"timed-out-operation\",\"stage\":\"preparation\",\"id\":\""+id+"\",\"frames\":[\"Host.示例(Host.java:1)\"]}]}\n").getBytes(StandardCharsets.UTF_8);}
++    static <T> FutureTask<T> start(Callable<T> task){FutureTask<T> f=new FutureTask<>(task);Thread t=new Thread(f,"host-diagnostic-test");t.setDaemon(true);t.start();return f;}
++    public static void main(String[] args)throws Exception {
++        Path root=Path.of(args[0]);Files.createDirectories(root);
++        Path exact=Files.createDirectory(root.resolve("exact"));byte[] data=record("ACTIVITY_ARRIVAL");
++        Path first=DiagnosticFiles.write(exact,"preparation","ACTIVITY_ARRIVAL",data);
++        check(first.getFileName().toString().equals("program-stacks-preparation-activity-arrival.json"),"portable phase filename");
++        check(Arrays.equals(data,Files.readAllBytes(first)),"UTF-8 bytes preserved exactly");
++        try{DiagnosticFiles.write(exact,"preparation","ACTIVITY_ARRIVAL",record("OTHER"));throw new AssertionError("duplicate accepted");}catch(FileAlreadyExistsException expected){checks++;}
++        check(Arrays.equals(data,Files.readAllBytes(first)),"duplicate does not truncate prior evidence");
++        Path legacy=exact.resolve("program-stacks.json");Files.writeString(legacy,"legacy preserved");
++        DiagnosticFiles.write(exact,"preparation","SETUP",record("SETUP"));
++        check(Files.readString(legacy).equals("legacy preserved"),"legacy filename remains untouched");
++        Locale before=Locale.getDefault();try{Locale.setDefault(Locale.forLanguageTag("tr-TR"));check(DiagnosticFiles.filename("preparation","IMPORT_DISPATCH").equals("program-stacks-preparation-import-dispatch.json"),"naming is locale independent");}finally{Locale.setDefault(before);}
++        for(String id:new String[]{"../x","a","A/B","A-B","A.B","","A".repeat(81)}){
++            try{DiagnosticFiles.write(exact,"preparation",id,data);throw new AssertionError("invalid ID accepted");}catch(IllegalArgumentException expected){checks++;}
++        }
++        try{DiagnosticFiles.write(exact,"../../outside","A",data);throw new AssertionError("invalid phase accepted");}catch(IllegalArgumentException expected){checks++;}
++        try{DiagnosticFiles.write(root.resolve("missing"),"startup","A",data);throw new AssertionError("missing directory created");}catch(IOException expected){checks++;}
++        check(!Files.exists(root.resolve("missing")),"writer never creates a run directory");
++
++        Path collision=Files.createDirectory(root.resolve("collision"));CountDownLatch race=new CountDownLatch(1);AtomicInteger successes=new AtomicInteger(),conflicts=new AtomicInteger();
++        List<FutureTask<Void>> attempts=new ArrayList<>();
++        for(int i=0;i<2;i++)attempts.add(start(()->{race.await();try{DiagnosticFiles.write(collision,"preparation","SETUP",record("SETUP"));successes.incrementAndGet();}catch(FileAlreadyExistsException expected){conflicts.incrementAndGet();}return null;}));
++        race.countDown();for(FutureTask<Void> f:attempts)f.get(3000,TimeUnit.MILLISECONDS);
++        check(successes.get()==1&&conflicts.get()==1,"same phase has exactly one exclusive-create winner");
++        check(Arrays.equals(record("SETUP"),Files.readAllBytes(collision.resolve(DiagnosticFiles.filename("preparation","SETUP")))),"racing duplicate leaves one complete unchanged record");
++
++        Path concurrent=Files.createDirectory(root.resolve("concurrent"));CountDownLatch both=new CountDownLatch(2),release=new CountDownLatch(1);AtomicInteger callbacks=new AtomicInteger(),active=new AtomicInteger(),max=new AtomicInteger();
++        BoundedStage control=new BoundedStage(RUN,e->{},timeout->{
++            callbacks.incrementAndGet();max.accumulateAndGet(active.incrementAndGet(),Math::max);both.countDown();
++            try{if(!both.await(2000,TimeUnit.MILLISECONDS))throw new AssertionError("callbacks did not overlap");DiagnosticFiles.write(concurrent,timeout.stage,timeout.id,record(timeout.id));}finally{active.decrementAndGet();}
++        },700);
++        try{
++            control.run("startup","UI_AUTOMATION_OPEN",5000,()->null);
++            try{control.run("preparation","SETUP",300,()->{control.owner("abcdef12-1234-1234-1234-123456789abc");return control.run("preparation","ACTIVITY_ARRIVAL",100,()->{release.await();return null;});});throw new AssertionError("blocked action accepted");}
++            catch(BoundedStage.StageTimeoutException expected){checks++;}
++            control.finish("STOPPED");
++            long limit=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(active.get()!=0&&System.nanoTime()<limit)Thread.sleep(5);
++            check(callbacks.get()==2&&max.get()==2&&active.get()==0,"unchanged candidate delivered two completed overlapping timeout callbacks");
++            for(String id:List.of("ACTIVITY_ARRIVAL","SETUP"))check(Arrays.equals(record(id),Files.readAllBytes(concurrent.resolve(DiagnosticFiles.filename("preparation",id)))),"each callback retained its own complete production-writer record");
++            try(var stream=Files.list(concurrent)){check(stream.count()==2,"exactly two independently retained records");}
++            check(control.events().stream().filter(e->"TERMINAL".equals(e.get("kind"))).count()==1,"one controller terminal unaffected");
++            check(control.events().stream().noneMatch(e->"ASSERT".equals(e.get("kind"))),"no preparation assertion or product acceptance");
++        }finally{release.countDown();}
++        System.out.println("PASS DiagnosticFiles checks="+checks+"; two concurrent timeout records retained; Android NOT_RUN");
++    }
++}
+--- /dev/null
++++ b/tests/test_prepare_stack_collection.py
+@@ -0,0 +1,104 @@
++"""Read-only collector regression; fixtures are synthetic and never removed."""
++import argparse
++import importlib.util
++import json
++from pathlib import Path
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++spec = importlib.util.spec_from_file_location("stack_collector", ROOT / "tools/collect_prepare_stacks.py")
++collector = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(collector)
++RUN = "12345678-1234-1234-1234-123456789abc"
++OUTPUT = None
++JAVA_OUTPUT = None
++
++
++def record(identity="ACTIVITY_ARRIVAL", legacy=False):
++    result = {"runId": RUN, "contains_document_text": False,
++              "stacks": [{"role": "timed-out-operation", "stage": "preparation", "id": identity, "frames": ["Host.method(Host.java:1)"]}]}
++    if not legacy:
++        result.update(format=collector.FORMAT, stage="preparation", id=identity)
++    return result
++
++
++class CollectionTests(unittest.TestCase):
++    def setUp(self):
++        self.directory = OUTPUT / self._testMethodName
++        self.directory.mkdir()
++
++    def write(self, value, name=None):
++        name = name or collector.filename(value.get("stage", "preparation"), value.get("id", "ACTIVITY_ARRIVAL"))
++        (self.directory / name).write_text(json.dumps(value), encoding="utf-8")
++
++    def test_legacy_read_compatibility(self):
++        self.write(record(legacy=True), "program-stacks.json")
++        result = collector.inspect(self.directory, RUN)
++        self.assertFalse(result["errors"])
++        self.assertEqual(result["records"][0]["format"], "legacy")
++
++    def test_new_multiple_files_all_collected(self):
++        for identity in ("ACTIVITY_ARRIVAL", "SETUP"):
++            self.write(record(identity))
++        result = collector.inspect(self.directory, RUN, ["ACTIVITY_ARRIVAL", "SETUP"])
++        self.assertFalse(result["errors"])
++        self.assertEqual({r["id"] for r in result["records"]}, {"ACTIVITY_ARRIVAL", "SETUP"})
++
++    def test_mixed_legacy_new_preserves_both(self):
++        self.write(record(legacy=True), "program-stacks.json")
++        self.write(record())
++        result = collector.inspect(self.directory, RUN)
++        self.assertEqual(len(result["records"]), 2)
++        self.assertFalse(result["errors"])
++        self.assertEqual(result["warnings"][0]["code"], "MULTIPLE_RECORDS_FOR_PHASE")
++
++    def test_unknown_stack_filename_is_not_silently_omitted(self):
++        self.write(record(), "program-stacks-unrecognized.json")
++        result = collector.inspect(self.directory, RUN)
++        self.assertTrue(result["errors"])
++        self.assertEqual(result["errors"][0]["file"], "program-stacks-unrecognized.json")
++
++    def test_empty_and_expected_missing_are_explicit(self):
++        result = collector.inspect(self.directory, RUN, ["SETUP"])
++        self.assertEqual({e["code"] for e in result["errors"]}, {"NO_STACK_FILES", "EXPECTED_STACK_MISSING"})
++
++    def test_missing_one_of_two_is_not_complete(self):
++        self.write(record())
++        result = collector.inspect(self.directory, RUN, ["ACTIVITY_ARRIVAL", "SETUP"])
++        self.assertEqual(result["errors"], [{"code": "EXPECTED_STACK_MISSING", "id": "SETUP"}])
++
++    def test_run_and_filename_identity_mismatch_rejected(self):
++        value = record();value["runId"] = "abcdef12-1234-1234-1234-123456789abc"
++        self.write(value)
++        self.assertTrue(collector.inspect(self.directory, RUN)["errors"])
++        self.write(record("SETUP"), collector.filename("preparation", "OTHER"))
++        self.assertEqual(len(collector.inspect(self.directory, RUN)["errors"]), 2)
++
++    def test_partial_duplicate_and_nonstandard_json_rejected(self):
++        names = ["program-stacks.json", collector.filename("preparation", "A"), collector.filename("preparation", "B")]
++        for name, body in zip(names, ['{"runId":', '{"runId":"a","runId":"b"}', '{"value":NaN}']):
++            (self.directory / name).write_text(body)
++        self.assertEqual(len(collector.inspect(self.directory, RUN)["errors"]), 3)
++
++    def test_nonfile_candidate_rejected(self):
++        (self.directory / "program-stacks-folder").mkdir()
++        self.assertTrue(collector.inspect(self.directory, RUN)["errors"])
++
++    def test_oversize_not_read_without_bound(self):
++        (self.directory / "program-stacks.json").write_bytes(b"x" * (collector.MAX_BYTES + 1))
++        self.assertTrue(collector.inspect(self.directory, RUN)["errors"])
++
++    def test_actual_java_writer_records_are_compatible(self):
++        result = collector.inspect(JAVA_OUTPUT / "concurrent", RUN, ["ACTIVITY_ARRIVAL", "SETUP"])
++        self.assertFalse(result["errors"])
++        self.assertEqual(len(result["records"]), 2)
++        self.assertFalse(result["product_acceptance"])
++        self.assertFalse(result["durability_confirmed"])
++        (self.directory / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
++
++
++if __name__ == "__main__":
++    parser = argparse.ArgumentParser();parser.add_argument("output", type=Path);parser.add_argument("java_output", type=Path)
++    args = parser.parse_args();OUTPUT = args.output;JAVA_OUTPUT = args.java_output
++    OUTPUT.mkdir(parents=True, exist_ok=False)
++    unittest.main(argv=[__file__])

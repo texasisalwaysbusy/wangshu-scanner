@@ -1,0 +1,6 @@
+PASS revision=before003 listener=throws acquired_frames_retained=false android_executed=false
+PASS revision=before003 listener=blocked acquired_frames_retained=false android_executed=false
+PASS capture_failure_metadata_only=true listener_calls=0 android_executed=false
+PASS expired_capture_listener_calls=0 thrown_timeout_immutable=true android_executed=false
+PASS capture_and_listener_budget_ms=500 elapsed_ms=601 android_executed=false
+PASS captured-timeout checks=27; Android NOT_RUN

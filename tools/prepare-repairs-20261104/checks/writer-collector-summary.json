@@ -1,0 +1,32 @@
+{
+  "run_id": "12345678-1234-1234-1234-123456789abc",
+  "records": [
+    {
+      "file": "program-stacks-preparation-activity-arrival.json",
+      "format": "v2",
+      "stage": "preparation",
+      "id": "ACTIVITY_ARRIVAL",
+      "sha256": "6592935785f61401d63614b3727915fe481ccb5ca368f199b044c350e4c5d73d",
+      "bytes": 294,
+      "stack_rows": 1
+    },
+    {
+      "file": "program-stacks-preparation-setup.json",
+      "format": "v2",
+      "stage": "preparation",
+      "id": "SETUP",
+      "sha256": "e76fa9daa9955c46d5a99a192cdd015ff21b7052141a4b6351d717505b6bce14",
+      "bytes": 272,
+      "stack_rows": 1
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "directory_snapshot_only": true,
+  "product_acceptance": false,
+  "durability_confirmed": false,
+  "expected_ids": [
+    "ACTIVITY_ARRIVAL",
+    "SETUP"
+  ]
+}

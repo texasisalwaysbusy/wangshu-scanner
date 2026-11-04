@@ -1,0 +1,210 @@
+{
+  "CURRENT_STATUS.md": {
+    "sha256": "2687242dc26f616fe9b241612bfd5393be3eae0434fc2a02b94c4c0a0b43007d",
+    "bytes": 1891
+  },
+  "FINAL_BUILD_SOURCE_HASHES.json": {
+    "sha256": "59327733a807e202e996b888d43d86c4016a22dd2e0963960ba4902eedc26772",
+    "bytes": 1175
+  },
+  "LICENSE": {
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "bytes": 11358
+  },
+  "PUBLIC_FILES.json": {
+    "sha256": "84f59355d73ee7e4261e9e338f5e9473e5de5100fb8802812739d81c47d49689",
+    "bytes": 2978
+  },
+  "README.md": {
+    "sha256": "fb41ab358bcc3caefe60e531ccade642a11abf3beaf6fd8c13d479c8441f5328",
+    "bytes": 6157
+  },
+  "baseline/tools/scanner_instrumentation/android/AndroidManifest.xml": {
+    "sha256": "34d4a59403cd49c92655b7bc40d48910fa492ecd3fe81b7892c6a5274c5a5861",
+    "bytes": 336
+  },
+  "baseline/tools/scanner_instrumentation/android/Fixtures.java": {
+    "sha256": "068a1b0cff00c546fbe52ae0c6687e6acb5802b41c9cf99daf638c4432784cd6",
+    "bytes": 1139
+  },
+  "baseline/tools/scanner_instrumentation/android/ScanInstrumentation.java": {
+    "sha256": "110d18cb7311c89060f9ccec78c866df34c6f59bc43d451f0392b8a5b8586a01",
+    "bytes": 21826
+  },
+  "baseline/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java": {
+    "sha256": "d682707f15c85d0518fe6c74e3b427f48fd11a23a87b554d6d6ee38a3a49b7d9",
+    "bytes": 16294
+  },
+  "baseline/tools/scanner_instrumentation_host.py": {
+    "sha256": "690262e408f875d9f4114c8f09f097fc03adb5a0de275b9e18134a5b4b2d7ed4",
+    "bytes": 21738
+  },
+  "candidate/tests/BoundedStageTests.java": {
+    "sha256": "9d847be5641559a45561b4aa43683967bea9cfd0c00f3e2350cf7159bbf7ef4c",
+    "bytes": 17126
+  },
+  "candidate/tests/CapturedTimeoutTests.java": {
+    "sha256": "1435bbd4bde1fc97060b5863b362a79e23ffe692cae2bb02ad591cedcd0e1f21",
+    "bytes": 6873
+  },
+  "candidate/tests/DiagnosticFilesTests.java": {
+    "sha256": "ce7aae2e32e4273618fab1252d1c29b9f99d6bd78e179b6c5ba9f78c405b8d6d",
+    "bytes": 6308
+  },
+  "candidate/tests/java_source_helpers.py": {
+    "sha256": "4ec578e0a9d2a851b7d664521fc21f98b1421c646bcf33a145e7e650fcd69342",
+    "bytes": 2620
+  },
+  "candidate/tests/test_prepare_source_contract.py": {
+    "sha256": "6a892b142c119a8f2fcd5f76af4ce63692c1a88e7d555397bb5caef886561072",
+    "bytes": 4509
+  },
+  "candidate/tests/test_prepare_stack_collection.py": {
+    "sha256": "ddb75fc0d091e0abd865279084fdcf04a07d80885698a91951c38f94103cba97",
+    "bytes": 5119
+  },
+  "candidate/tools/collect_prepare_stacks.py": {
+    "sha256": "ad3da6d3016ce0cd2e686712aeeeed61defa4b299e1048c80949e8fb2dfadb2a",
+    "bytes": 5542
+  },
+  "candidate/tools/scanner_instrumentation/android/AndroidManifest.xml": {
+    "sha256": "34d4a59403cd49c92655b7bc40d48910fa492ecd3fe81b7892c6a5274c5a5861",
+    "bytes": 336
+  },
+  "candidate/tools/scanner_instrumentation/android/Fixtures.java": {
+    "sha256": "068a1b0cff00c546fbe52ae0c6687e6acb5802b41c9cf99daf638c4432784cd6",
+    "bytes": 1139
+  },
+  "candidate/tools/scanner_instrumentation/android/ScanInstrumentation.java": {
+    "sha256": "0a4346e168fa4c00b5cffd8fb659e64bb42e2e4c70e10a6fb7f0115843ef6133",
+    "bytes": 22085
+  },
+  "candidate/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java": {
+    "sha256": "a8c5b0d317f2a3ac4acd49178b42f99283277adf3b095538d905a96c7f25d8bd",
+    "bytes": 18269
+  },
+  "candidate/tools/scanner_instrumentation/java/org/wangshu/scan/DiagnosticFiles.java": {
+    "sha256": "bef4e799a312adad39e40f62cbae8fca878d767bd4ae340c2d47e0beff2a8c2d",
+    "bytes": 1878
+  },
+  "candidate/tools/scanner_instrumentation_host.py": {
+    "sha256": "690262e408f875d9f4114c8f09f097fc03adb5a0de275b9e18134a5b4b2d7ed4",
+    "bytes": 21738
+  },
+  "checks/baseline-capture_only.summary.json": {
+    "sha256": "14115d9585df52ba73f46e3af30f06983359aa55b518c4442596cfbc35216f3b",
+    "bytes": 795
+  },
+  "checks/baseline-capture_only.txt": {
+    "sha256": "e06131cc9b0f7c65a83f9fcc698b80bc4bf91bc5ad5e292c142a346e2d9d5ac0",
+    "bytes": 800
+  },
+  "checks/baseline-compile.txt": {
+    "sha256": "e6719c4e7b4d72693fd71e32dd4c25cf4475c27a9e38f3ed822ef1a327375b1b",
+    "bytes": 88
+  },
+  "checks/baseline-sink_and_capture.summary.json": {
+    "sha256": "30b2706c4e7427b0f65ea0e45c55f49fd378d5c0481879d470ead564257df33b",
+    "bytes": 798
+  },
+  "checks/baseline-sink_and_capture.txt": {
+    "sha256": "8861b30ac67a9858865b160e49a01d50073d8083841866a417e34fd69d075f91",
+    "bytes": 803
+  },
+  "checks/before003-captured-frames.txt": {
+    "sha256": "4e15fdd5302c5b7afa576a6b2c06ee8427979a3d846a79468618c204dcfc8abf",
+    "bytes": 487
+  },
+  "checks/before003-compile.txt": {
+    "sha256": "e6719c4e7b4d72693fd71e32dd4c25cf4475c27a9e38f3ed822ef1a327375b1b",
+    "bytes": 88
+  },
+  "checks/candidate-boundary-tests.txt": {
+    "sha256": "7755491fedae706d50788728570d9412c7a1fb4180a8439866a87e80b79d776b",
+    "bytes": 4546
+  },
+  "checks/candidate-bounded-tests.txt": {
+    "sha256": "e674919b7f9f7a34c9a0b0285d6ea13bf8026674252645f7b9a39533f522f7c0",
+    "bytes": 1384
+  },
+  "checks/candidate-capture_only.summary.json": {
+    "sha256": "dee7c396a1996e2fbe365d89f3b8e374b7a68e5c199cffcd3fd95c8960020538",
+    "bytes": 836
+  },
+  "checks/candidate-capture_only.txt": {
+    "sha256": "b4a0979a222652379b413391279e0092395f7964590b9b2573f3a8c1634861f1",
+    "bytes": 841
+  },
+  "checks/candidate-captured-frames.txt": {
+    "sha256": "1c5e5efb6832858aa23f8e467355aca44948d2c19bd2c3e2510ba4bc20b614a7",
+    "bytes": 483
+  },
+  "checks/candidate-compile.txt": {
+    "sha256": "e6719c4e7b4d72693fd71e32dd4c25cf4475c27a9e38f3ed822ef1a327375b1b",
+    "bytes": 88
+  },
+  "checks/candidate-sink_and_capture.summary.json": {
+    "sha256": "2d268ad8030c8153647122bd0b3dc2b81311bcf300c05dd54bd4c636d5b57c4b",
+    "bytes": 839
+  },
+  "checks/candidate-sink_and_capture.txt": {
+    "sha256": "71ddf058962b1b10294772c34568a17a403043f21bc01b8758ca9a135ee5834f",
+    "bytes": 844
+  },
+  "checks/candidate-writer-tests.txt": {
+    "sha256": "75d7b3776727c0202829cd8446d0cb97e45376b749a8570b59c46fc3636e42c2",
+    "bytes": 89
+  },
+  "checks/collector-tests.txt": {
+    "sha256": "53ec6bfd32b426a23950e2fbbff5aba6e95df6d3ed7324d3edb40dd8151e63f8",
+    "bytes": 110
+  },
+  "checks/results.json": {
+    "sha256": "531104b6d6ea323084edacde1fa9398aed7743da03ac8c7cfb512a82eb81ff57",
+    "bytes": 1314
+  },
+  "checks/source-contracts.txt": {
+    "sha256": "8411946213dc2a1118c87db5d3be2cdb981e124a9750eb02d3b60bc09fe65daa",
+    "bytes": 107
+  },
+  "checks/writer-collector-summary.json": {
+    "sha256": "179b4008666ee6f1f654ef2b55edb098b048c4fdeab74c468c6a7eb2d71a2b80",
+    "bytes": 824
+  },
+  "docs/BUILD_AND_RECOVERY.md": {
+    "sha256": "60875499d180c0950419e6bc9607767d362d3a93e214d4799a72dab2fa661f96",
+    "bytes": 5285
+  },
+  "docs/STACK_COLLECTION.md": {
+    "sha256": "4eb8cefead5f7704ba190209178baf4836e946f686b995c4d0797fb33fef3545",
+    "bytes": 4035
+  },
+  "patches/001-bound-runtime-stack-capture.patch": {
+    "sha256": "1c8727fbde262f536a1b8b548df8eac16fd2e62e61725e3ef811c054d19337e0",
+    "bytes": 5982
+  },
+  "patches/002-preserve-per-phase-stack-files.patch": {
+    "sha256": "84a6750f83fa1a075ccfc0c2d60dedf5d888b4c79572b30dee372a77531e250f",
+    "bytes": 20731
+  },
+  "patches/003-retain-captured-timeout-frames.patch": {
+    "sha256": "5aa8119ad1f5532e87d8bea238e9bda43e3a0d75a40514f0b7f599df2412b135",
+    "bytes": 16295
+  },
+  "reference/after001/BoundedStage.java": {
+    "sha256": "15701ad717fc3a2fe34612e9c8194dcd554b594799ee94667e7ed9f4d965f90a",
+    "bytes": 18049
+  },
+  "run_checks.py": {
+    "sha256": "90f5203e36c2ad2696ad3a7f9bcc586a7ee8d127c5b2ea8bd73b2061222bce46",
+    "bytes": 4201
+  },
+  "tests/EvidenceBoundaryProbe.java": {
+    "sha256": "b2963b409ec5c5c8b6965ffbe83220caff9a18fbd6b7ba280846fee8700a4eed",
+    "bytes": 10209
+  },
+  "tests/RuntimeCaptureProbe.java": {
+    "sha256": "6264b3de76d82bb06ce5d08ad919cdd638ee0791be6224cb339840e89f977fed",
+    "bytes": 9109
+  }
+}

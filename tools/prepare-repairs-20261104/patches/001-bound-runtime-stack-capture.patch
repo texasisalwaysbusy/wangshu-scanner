@@ -1,0 +1,82 @@
+--- a/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java
++++ b/tools/scanner_instrumentation/java/org/wangshu/scan/BoundedStage.java
+@@ -17,16 +17,24 @@
+     private static final long CASE_BUDGET_MS=1_000;
+     @FunctionalInterface public interface Sink {void accept(Map<String,Object> event)throws Exception;}
+     @FunctionalInterface public interface TimeoutListener {void onTimeout(Timeout timeout)throws Exception;}
++    @FunctionalInterface interface StackCapture {StackTraceElement[] read(Thread target)throws Exception;}
+     public static final class Timeout {
+         public final String stage,id,operationState="UNKNOWN",dispatchState,targetThread;
+         public final long budgetMs;
+         public final List<StackTraceElement> stackFrames;
++        private final Thread target;
+         private Timeout(Phase p){
+             stage=p.stage;id=p.id;budgetMs=p.budgetMs;
+             int state=p.state.get();dispatchState=state==0||state==3?"CANCELLED_BEFORE_START":state==1?"RUNNING":"FINISHED";
+-            Thread target=p.runner!=null?p.runner:p.dispatcher;
++            target=p.runner!=null?p.runner:p.dispatcher;
+             targetThread=target==null?"scanner-stage-not-started":p.runner!=null?(p.posted?"scanner-stage-posted":"scanner-stage-worker"):"scanner-stage-dispatch";
+-            StackTraceElement[] frames=target==null?new StackTraceElement[0]:target.getStackTrace();
++            // Metadata only: cross-thread stack capture can enter runtime code and
++            // must never run on the controller thread or while holding its lock.
++            stackFrames=Collections.emptyList();
++        }
++        private Timeout(Timeout source,StackTraceElement[] frames){
++            stage=source.stage;id=source.id;budgetMs=source.budgetMs;
++            dispatchState=source.dispatchState;targetThread=source.targetThread;target=source.target;
+             stackFrames=Collections.unmodifiableList(Arrays.asList(Arrays.copyOf(frames,Math.min(64,frames.length))));
+         }
+     }
+@@ -49,7 +57,7 @@
+         long remaining(){return TimeUnit.MILLISECONDS.toNanos(budgetMs)-(System.nanoTime()-started);}
+     }
+     private final Object lock=new Object();
+-    private final String runId;private final Sink sink;private final TimeoutListener listener;private final long evidenceBudgetMs;
++    private final String runId;private final Sink sink;private final TimeoutListener listener;private final long evidenceBudgetMs;private final StackCapture stackCapture;
+     private final ExecutorService evidence;
+     private final long origin=System.nanoTime();private long sequence,lastNs;
+     private final List<Map<String,Object>> retained=new ArrayList<>();private final Deque<Phase> phases=new ArrayDeque<>();
+@@ -59,6 +67,11 @@
+     public BoundedStage(String runId,Sink sink,TimeoutListener listener){this(runId,sink,listener,1_000);}
+     /** Evidence delivery is also bounded. Sinks must not call back into this controller. */
+     public BoundedStage(String runId,Sink sink,TimeoutListener listener,long evidenceBudgetMs){
++        this(runId,sink,listener,evidenceBudgetMs,Thread::getStackTrace);
++    }
++    // Package-private seam: host tests can block runtime stack collection itself.
++    BoundedStage(String runId,Sink sink,TimeoutListener listener,long evidenceBudgetMs,StackCapture stackCapture){
++        this.stackCapture=Objects.requireNonNull(stackCapture,"stackCapture");
+         this.runId=uuid(runId);this.sink=Objects.requireNonNull(sink,"sink");this.listener=listener;
+         if(evidenceBudgetMs<=0||evidenceBudgetMs>1_000)throw new IllegalArgumentException("evidence budget must be 1..1000ms");
+         this.evidenceBudgetMs=evidenceBudgetMs;
+@@ -170,11 +183,27 @@
+     private StageTimeoutException timedOut(Phase p){
+         Timeout timeout;
+         synchronized(lock){stop(p,"TIMEOUT",null);timeout=new Timeout(p);}
++        final Timeout metadata=timeout;
++        // Stack collection and the listener share the existing diagnostic budget.
++        // A stalled runtime stack reader cannot prevent STOPPED/TERMINAL handling.
++        final long diagnosticDeadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(evidenceBudgetMs);
++        FutureTask<Timeout> diagnostic=new FutureTask<>(()->{
++            StackTraceElement[] frames=metadata.target==null?new StackTraceElement[0]:stackCapture.read(metadata.target);
++            if(System.nanoTime()-diagnosticDeadline>=0)throw new TimeoutException();
++            Timeout captured=new Timeout(metadata,frames);
++            if(listener!=null)listener.onTimeout(captured);
++            return captured;
++        });
++        daemon("scanner-stage-diagnostic",diagnostic).start();
++        Exception diagnosticFailure=null;
++        try{timeout=diagnostic.get(evidenceBudgetMs,TimeUnit.MILLISECONDS);}
++        catch(Exception error){
++            diagnosticFailure=error;
++            synchronized(lock){diagnosticErrors.add(error instanceof ExecutionException&&error.getCause()!=null?error.getCause().getClass().getName():error.getClass().getName());}
++            if(error instanceof InterruptedException)Thread.currentThread().interrupt();
++        }
+         StageTimeoutException failure=new StageTimeoutException(timeout);
+-        if(listener!=null){
+-            FutureTask<Void> diagnostic=new FutureTask<>(()->{listener.onTimeout(timeout);return null;});daemon("scanner-stage-diagnostic",diagnostic).start();
+-            try{diagnostic.get(evidenceBudgetMs,TimeUnit.MILLISECONDS);}catch(Exception error){synchronized(lock){diagnosticErrors.add(error instanceof ExecutionException&&error.getCause()!=null?error.getCause().getClass().getName():error.getClass().getName());}failure.addSuppressed(error);}
+-        }
++        if(diagnosticFailure!=null)failure.addSuppressed(diagnosticFailure);
+         return failure;
+     }
+     private void end(Phase p,String status,String operationState,Map<String,Object> more)throws EvidenceException {

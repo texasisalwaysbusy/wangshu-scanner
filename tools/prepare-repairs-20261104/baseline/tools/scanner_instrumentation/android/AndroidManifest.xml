@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:label="望舒合成准备诊断">
+    <provider android:name="org.wangshu.scan.synthetic.Fixtures" android:authorities="org.wangshu.scan.test.fixtures" android:exported="true" android:grantUriPermissions="true" />
+  </application>
+</manifest>
