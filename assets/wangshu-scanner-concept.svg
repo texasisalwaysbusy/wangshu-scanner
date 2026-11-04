@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="640" viewBox="0 0 1440 640" role="img" aria-labelledby="title desc">
+  <title id="title">望舒扫描 · Wangshu Scanner — concept illustration</title>
+  <desc id="desc">Original concept illustration showing abstract document pages, crop corners and text lines. No real scans or user content. Not an application screenshot or test evidence. 原创概念插画，非实际界面或测试证据。</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071c2a"/><stop offset="1" stop-color="#123c49"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffdf5"/><stop offset="1" stop-color="#d6eee7"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#75e8c2" stop-opacity="0.20"/><stop offset="1" stop-color="#75e8c2" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="640" rx="28" fill="url(#night)"/>
+  <g fill="none" stroke="#34616a" stroke-opacity="0.3">
+    <circle cx="1154" cy="240" r="310"/><circle cx="1154" cy="240" r="255"/>
+    <path d="M1064 0V570M1310 0V570M760 112H1440M760 454H1440"/>
+  </g>
+  <!-- Original project mark: crescent and a page corner. -->
+  <g transform="translate(72 68)">
+    <path d="M44 0A34 34 0 1 0 65 52A30 30 0 0 1 44 0Z" fill="#8de7ce"/>
+    <path d="M57 11h16v16M13 50v16h16" fill="none" stroke="#fff3ce" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g font-family="Inter, DejaVu Sans, Arial, sans-serif">
+    <text x="175" y="101" font-size="16" letter-spacing="3" fill="#a3c6cb">ANDROID · SOURCE PREVIEW</text>
+    <text x="72" y="226" font-family="Noto Sans CJK SC, sans-serif" font-size="76" font-weight="600" letter-spacing="4" fill="#fffaf0">望舒扫描</text>
+    <text x="76" y="290" font-size="43" font-weight="500" letter-spacing="0.4" fill="#e8f3ef">Wangshu Scanner</text>
+    <text x="78" y="355" font-family="Noto Sans CJK SC, sans-serif" font-size="23" fill="#b7d3d5">从纸张，到便于审阅和检索的文档。</text>
+    <text x="78" y="393" font-size="19" fill="#b7d3d5">From paper to pages you can review and search.</text>
+    <g font-size="14" letter-spacing="1.2" font-weight="600">
+      <rect x="78" y="443" width="160" height="41" rx="20" fill="#8de7ce" fill-opacity="0.12" stroke="#8de7ce" stroke-opacity="0.4"/>
+      <text x="158" y="469" text-anchor="middle" fill="#b8f3df">PAGE REVIEW</text>
+      <rect x="252" y="443" width="124" height="41" rx="20" fill="#8de7ce" fill-opacity="0.12" stroke="#8de7ce" stroke-opacity="0.4"/>
+      <text x="314" y="469" text-anchor="middle" fill="#b8f3df">OCR / TXT</text>
+      <rect x="390" y="443" width="88" height="41" rx="20" fill="#8de7ce" fill-opacity="0.12" stroke="#8de7ce" stroke-opacity="0.4"/>
+      <text x="434" y="469" text-anchor="middle" fill="#b8f3df">PDF</text>
+    </g>
+  </g>
+  <!-- Abstract paper composition, deliberately not a phone or UI mockup. -->
+  <g transform="translate(855 92)">
+    <path d="M-13 45L258 10L310 368L39 403Z" fill="#06202c" opacity="0.5"/>
+    <path d="M-20 22L235 -9L279 343L24 375Z" fill="#729a9c"/>
+    <path d="M12 10L263 15L257 370L5 365Z" fill="#bad8d2"/>
+    <path d="M43 13L294 44L250 396L-1 365Z" fill="url(#page)"/>
+    <g transform="rotate(7 145 190)">
+      <text x="66" y="127" font-family="Georgia, DejaVu Serif, serif" font-size="67" fill="#174957">Aa</text>
+      <path d="M66 162H229M66 185H229M66 208H189" stroke="#8baeb1" stroke-width="7" stroke-linecap="round"/>
+      <rect x="65" y="246" width="59" height="65" rx="5" fill="#b4d6cd"/>
+      <path d="M143 254H222M143 277H222M143 300H200" stroke="#8baeb1" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g fill="none" stroke="#75e8c2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 43l4 -35l38 5M270 36l35 4l-5 38M262 363l-5 43l-38 -5M2 334l-5 39l37 5"/>
+    </g>
+    <path d="M-30 192H321V287H-30Z" fill="url(#beam)"/>
+    <path d="M-30 192H321" stroke="#75e8c2" stroke-width="3"/>
+    <circle cx="-30" cy="192" r="5" fill="#75e8c2"/><circle cx="321" cy="192" r="5" fill="#75e8c2"/>
+    <g transform="translate(237 283)">
+      <rect x="5" y="7" width="164" height="112" rx="18" fill="#061b26" opacity="0.3"/>
+      <rect width="164" height="112" rx="18" fill="#1e5260" stroke="#63969c"/>
+      <text x="22" y="39" font-family="DejaVu Sans, sans-serif" font-size="16" letter-spacing="3" fill="#a9ead9">TEXT</text>
+      <path d="M24 61H137M24 78H118M24 94H93" stroke="#d3ebe4" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+  <path d="M72 545H1368" stroke="#42656c" stroke-opacity="0.65"/>
+  <text x="75" y="580" font-family="Noto Sans CJK SC, sans-serif" font-size="15" fill="#c2d7d6">原创概念插画 · 非实际界面或测试证据</text>
+  <text x="75" y="608" font-family="Inter, DejaVu Sans, Arial, sans-serif" font-size="12" letter-spacing="1.3" fill="#9ab9bd">CONCEPT ART · NOT APP UI OR TEST EVIDENCE</text>
+  <text x="1365" y="595" text-anchor="end" font-family="Inter, DejaVu Sans, Arial, sans-serif" font-size="12" letter-spacing="2" fill="#9ab9bd">WANGSHU / 望舒</text>
+</svg>
